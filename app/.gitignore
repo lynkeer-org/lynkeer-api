@@ -1,0 +1,56 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python tooling
+*.log
+*.pot
+*.pyc
+*.pyd
+*.pdb
+
+# Environment variables
+.env
+.env.*
+
+# SQLite databases
+*.sqlite3
+
+# Docker
+*.tar
+*.log
+docker-compose.override.yml
+
+# VSCode
+.vscode/
+
+# macOS / Linux
+.DS_Store
+.idea/
+*.swp
+
+# Pytest / coverage
+.coverage
+htmlcov/
+.tox/
+.cache/
+pytest_cache/
+nosetests.xml
+coverage.xml
+
+# mypy / pylint
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
