@@ -2,8 +2,10 @@ services:
   web-server:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile    
     volumes:
-      - .:/app
+      - ./app:/app
     ports:
-      - '80:80'
+      - "80:80"
+    
+
