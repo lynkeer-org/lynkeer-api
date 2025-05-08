@@ -2,10 +2,12 @@ services:
   web-server:
     build:
       context: .
-      dockerfile: Dockerfile    
+      dockerfile: Dockerfile
     volumes:
       - ./app:/app
     ports:
       - "80:80"
-    
+    env_file:
+      - .env
+
 

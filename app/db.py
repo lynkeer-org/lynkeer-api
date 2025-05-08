@@ -1,12 +1,27 @@
+import os
 from sqlmodel import Session, create_engine, SQLModel
 from typing import Annotated
 from fastapi import Depends, FastAPI
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 
-sqlite_name = "db.sqlite3"
-sqlite_url = f"sqlite:///{sqlite_name}"
+# sqlite_name = "db.sqlite3"
+# sqlite_url = f"sqlite:///{sqlite_name}"
 
-engine = create_engine(sqlite_url)
+# engine = create_engine(sqlite_url)
+# PostgreSQL connection string
+# Load environment variables from .env
+load_dotenv()
+
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
+
+database_url = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+
+engine = create_engine(database_url, echo=True)
 
 
 @asynccontextmanager
