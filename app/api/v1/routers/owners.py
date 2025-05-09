@@ -1,4 +1,4 @@
-from models.owner import Owner, OwnerCreate, OwnerUpdate
+from models.owner import Owner, OwnerCreate, OwnerResponse, OwnerUpdate
 from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 from db import SessionDep
@@ -9,32 +9,15 @@ router = APIRouter()
 
 @router.post(
     "/sign-up",
-    response_model=Owner,
+    response_model=OwnerResponse,
     status_code=status.HTTP_201_CREATED,
     tags=["owners"],
 )
 async def create_owner(owner_data: OwnerCreate, session: SessionDep):
-    # 🔍 Check if email or phone already exist
-    # email_exists = session.exec(
-    #     select(Owner).where(Owner.email == owner_data.email)
-    # ).first()
-    # phone_exists = session.exec(
-    #     select(Owner).where(Owner.phone == owner_data.phone)
-    # ).first()
-
-    # if email_exists:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
-    #     )
-    # if phone_exists:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST, detail="Phone already registered"
-    #     )
 
     owner_dict = owner_data.model_dump()
-    owner_dict["password_hash"] = hash_password(
-        owner_dict["password_hash"]
-    )  # 🔐 Hash here
+    password = owner_dict.pop("password")  # Get and remove plain password
+    owner_dict["password_hash"] = hash_password(password)
     owner = Owner.model_validate(owner_dict)
     session.add(owner)
     session.commit()
