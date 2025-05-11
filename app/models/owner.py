@@ -3,7 +3,6 @@ from sqlmodel import SQLModel, Field, Session, select
 from datetime import datetime, timezone
 from db import engine
 import uuid
-from uuid import UUID
 
 
 class OwnerBase(SQLModel):
@@ -36,7 +35,7 @@ class OwnerBase(SQLModel):
 
 
 class OwnerResponse(BaseModel):
-    id: UUID
+    id: uuid.UUID
     first_name: str
     last_name: str
     email: str
@@ -55,7 +54,7 @@ class OwnerUpdate(OwnerBase):
 
 class Owner(OwnerBase, table=True):
     # id: int | None = Field(default=None, primary_key=True)
-    id: UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     password_hash: str = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     active: bool | None = Field(default=True)
