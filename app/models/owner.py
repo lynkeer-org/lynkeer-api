@@ -34,24 +34,6 @@ class OwnerBase(SQLModel):
         return value
 
 
-class OwnerResponse(BaseModel):
-    id: uuid.UUID
-    first_name: str
-    last_name: str
-    email: str
-    phone: str
-    created_at: datetime
-    active: bool
-
-
-class OwnerCreate(OwnerBase):
-    password: str
-
-
-class OwnerUpdate(OwnerBase):
-    pass
-
-
 class Owner(OwnerBase, table=True):
     # id: int | None = Field(default=None, primary_key=True)
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)

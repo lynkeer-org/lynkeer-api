@@ -1,4 +1,5 @@
-from models.owner import Owner, OwnerCreate, OwnerResponse, OwnerUpdate
+from schemas.owner import OwnerCreate, OwnerResponse, OwnerUpdate
+from models.owner import Owner
 from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 from db import SessionDep
