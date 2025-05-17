@@ -1,20 +1,12 @@
-from schemas.owner import OwnerCreate, OwnerResponse, OwnerUpdate
-from models.owner import Owner
-from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
-from db import SessionDep
+from models.owner import Owner
+from schemas.owner import OwnerCreate, OwnerUpdate
 from utils.hashing import hash_password
+from fastapi import HTTPException, status
+from db import SessionDep
 
-router = APIRouter()
 
-
-@router.post(
-    "/sign-up",
-    response_model=OwnerResponse,
-    status_code=status.HTTP_201_CREATED,
-    tags=["owners"],
-)
-async def create_owner(owner_data: OwnerCreate, session: SessionDep):
+def create_owner(owner_data: OwnerCreate, session: SessionDep):
 
     owner_dict = owner_data.model_dump()
     password = owner_dict.pop("password")  # Get and remove plain password
@@ -27,14 +19,12 @@ async def create_owner(owner_data: OwnerCreate, session: SessionDep):
     return owner
 
 
-@router.get("/owners", response_model=list[Owner], tags=["owners"])
-async def list_owners(session: SessionDep):
+def list_owners(session: SessionDep):
     # This query selects all customers from the database and returns them as a list.
     return session.exec(select(Owner)).all()
 
 
-@router.get("/owners/{owner_id}", response_model=Owner, tags=["owners"])
-async def read_owner(owner_id: int, session: SessionDep):
+def read_owner(owner_id: int, session: SessionDep):
     owner_db = session.get(Owner, owner_id)
     if not owner_db:
         raise HTTPException(
@@ -44,8 +34,7 @@ async def read_owner(owner_id: int, session: SessionDep):
     return owner_db
 
 
-@router.delete("/owners/{owner_id}", tags=["owners"])
-async def delete_owner(owner_id: int, session: SessionDep):
+def delete_owner(owner_id: int, session: SessionDep):
     owner_db = session.get(Owner, owner_id)
     if not owner_db:
         raise HTTPException(
@@ -56,13 +45,7 @@ async def delete_owner(owner_id: int, session: SessionDep):
     return {"message": "Owner deleted successfully"}
 
 
-@router.patch(
-    "/owners/{owner_id}",
-    response_model=Owner,
-    status_code=status.HTTP_201_CREATED,
-    tags=["owners"],
-)
-async def update_owner(owner_id: int, owner_data: OwnerUpdate, session: SessionDep):
+def update_owner(owner_id: int, owner_data: OwnerUpdate, session: SessionDep):
     owner_db = session.get(Owner, owner_id)
     if not owner_db:
         raise HTTPException(
