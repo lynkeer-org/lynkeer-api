@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from api.v1.endpoints import owner  # This should work if structure is correct
+from app.api.v1.endpoints import owner  # This should work if structure is correct
 
-from db import create_all_tables
+from app.db import create_all_tables
 
 
 app = FastAPI(

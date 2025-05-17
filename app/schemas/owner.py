@@ -1,8 +1,8 @@
 from pydantic import BaseModel, EmailStr, field_validator
 from sqlmodel import SQLModel, Field, Session, select
 from datetime import datetime, timezone
-from models.owner import OwnerBase
-from db import engine
+from app.models.owner import OwnerBase
+from app.db import engine
 import uuid
 
 

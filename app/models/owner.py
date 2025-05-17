@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, field_validator
 from sqlmodel import SQLModel, Field, Session, select
 from datetime import datetime, timezone
-from db import engine
+from app.db import engine
 import uuid
 
 
