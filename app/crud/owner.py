@@ -1,9 +1,9 @@
 from sqlmodel import select
 from app.models.owner import Owner
 from app.schemas.owner import OwnerCreate, OwnerUpdate
-from app.utils.hashing import hash_password
+from app.core.hashing import hash_password
 from fastapi import HTTPException, status
-from app.db import SessionDep
+from app.core.db import SessionDep
 
 
 def create_owner(owner_data: OwnerCreate, session: SessionDep):

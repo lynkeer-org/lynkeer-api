@@ -9,20 +9,10 @@ from app.schemas.owner import OwnerCreate, OwnerResponse, OwnerUpdate
 from app.models.owner import Owner
 from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
-from app.db import SessionDep
-from app.utils.hashing import hash_password
+from app.core.db import SessionDep
+from app.core.hashing import hash_password
 
 router = APIRouter()
-
-
-@router.post(
-    "/sign-up",
-    response_model=OwnerResponse,
-    status_code=status.HTTP_201_CREATED,
-    tags=["owners"],
-)
-async def create_owner_endpoint(owner_data: OwnerCreate, session: SessionDep):
-    return create_owner(session=session, owner_data=owner_data)
 
 
 @router.get("/owners", response_model=list[Owner], tags=["owners"])
