@@ -7,7 +7,6 @@ from app.core.db import SessionDep
 
 
 def create_owner(owner_data: OwnerCreate, session: SessionDep):
-
     owner_dict = owner_data.model_dump()
     password = owner_dict.pop("password")  # Get and remove plain password
     owner_dict["password_hash"] = hash_password(password)

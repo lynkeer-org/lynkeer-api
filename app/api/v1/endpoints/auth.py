@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
+from fastapi import APIRouter, HTTPException, status
+from sqlmodel import select
 from app.core.hashing import verify_password
 from app.core.security import create_access_token
 from app.crud.owner import create_owner

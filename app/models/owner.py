@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import EmailStr, field_validator
 from sqlmodel import SQLModel, Field, Session, select
 from datetime import datetime, timezone
 from app.core.db import engine

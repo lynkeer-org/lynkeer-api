@@ -1,16 +1,13 @@
 from app.crud.owner import (
-    create_owner,
     delete_owner,
     list_owners,
     read_owner,
     update_owner,
 )
-from app.schemas.owner import OwnerCreate, OwnerResponse, OwnerUpdate
+from app.schemas.owner import OwnerUpdate
 from app.models.owner import Owner
-from fastapi import APIRouter, HTTPException, status
-from sqlmodel import select
+from fastapi import APIRouter, status
 from app.core.db import SessionDep
-from app.core.hashing import hash_password
 
 router = APIRouter()
 
