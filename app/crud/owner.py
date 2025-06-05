@@ -28,28 +28,18 @@ def read_owner(owner_id: int, session: SessionDep):
     return owner_db
 
 
-def delete_owner(owner_id: int, session: SessionDep):
-    owner_db = session.get(Owner, owner_id)
-    if not owner_db:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Owner does not exist"
-        )
-    session.delete(owner_db)
+def delete_owner(owner: Owner, session: SessionDep):
+    session.delete(owner)
     session.commit()
     return {"message": "Owner deleted successfully"}
 
 
-def update_owner(owner_id: int, owner_data: OwnerUpdate, session: SessionDep):
-    owner_db = session.get(Owner, owner_id)
-    if not owner_db:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Owner does not exist"
-        )
+def update_owner(owner: Owner, owner_data: OwnerUpdate, session: SessionDep):
     owner_data_dict = owner_data.model_dump(
         exclude_unset=True
     )  # exclude_unset=True option is used to exclude unset fields from the dictionary
-    owner_db.sqlmodel_update(owner_data_dict)
-    session.add(owner_db)
+    owner.sqlmodel_update(owner_data_dict)
+    session.add(owner)
     session.commit()
-    session.refresh(owner_db)
-    return owner_db
+    session.refresh(owner)
+    return owner
