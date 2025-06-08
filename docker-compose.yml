@@ -4,10 +4,12 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./app:/app
+      - .:/app
     ports:
       - "80:80"
     env_file:
       - .env
+    environment:
+      - PYTHONPATH=/app
 
 
