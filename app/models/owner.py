@@ -1,9 +1,8 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import EmailStr, field_validator
 from sqlmodel import SQLModel, Field, Session, select
 from datetime import datetime, timezone
-from db import engine
+from app.core.db import engine
 import uuid
-from uuid import UUID
 
 
 class OwnerBase(SQLModel):
@@ -35,27 +34,9 @@ class OwnerBase(SQLModel):
         return value
 
 
-class OwnerResponse(BaseModel):
-    id: UUID
-    first_name: str
-    last_name: str
-    email: str
-    phone: str
-    created_at: datetime
-    active: bool
-
-
-class OwnerCreate(OwnerBase):
-    password: str
-
-
-class OwnerUpdate(OwnerBase):
-    pass
-
-
 class Owner(OwnerBase, table=True):
     # id: int | None = Field(default=None, primary_key=True)
-    id: UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     password_hash: str = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     active: bool | None = Field(default=True)
