@@ -1,0 +1,11 @@
+services:
+  web-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.staging
+    ports:
+      - "80:80"
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
