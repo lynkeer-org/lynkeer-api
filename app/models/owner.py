@@ -1,8 +1,9 @@
 from pydantic import EmailStr, field_validator
-from sqlmodel import SQLModel, Field, Session, select
+from sqlmodel import Relationship, SQLModel, Field, Session, select
 from datetime import datetime, timezone
 from app.core.db import engine
 import uuid
+from app.models.pass_model import Pass
 
 
 class OwnerBase(SQLModel):
@@ -38,5 +39,6 @@ class Owner(OwnerBase, table=True):
     # id: int | None = Field(default=None, primary_key=True)
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     password_hash: str = Field(default=None)
+    passes: list[Pass] = Relationship(back_populates="owner")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     active: bool | None = Field(default=True)
