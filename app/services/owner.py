@@ -10,6 +10,7 @@ from app.schemas.owner import OwnerCreate, OwnerUpdate
 from app.core.hashing import hash_password
 from app.core.db import SessionDep
 from fastapi import HTTPException, status
+import uuid
 
 
 def create_owner_service(owner_data: OwnerCreate, session: SessionDep):
@@ -25,7 +26,7 @@ def list_owners_service(session: SessionDep):
     return list_owners(session)
 
 
-def read_owner_service(owner_id: int, session: SessionDep):
+def read_owner_service(owner_id: uuid.UUID, session: SessionDep):
     owner_db = read_owner(session=session, owner_id=owner_id)
     if not owner_db:
         raise HTTPException(

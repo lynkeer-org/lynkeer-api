@@ -9,6 +9,7 @@ from app.models.owner import Owner
 from fastapi import APIRouter, status
 from app.core.db import SessionDep
 from app.services.owner import list_owners_service, read_owner_service
+import uuid
 
 router = APIRouter()
 
@@ -19,7 +20,7 @@ async def list_owners_endpoint(session: SessionDep):
 
 
 @router.get("/owners/{owner_id}", response_model=Owner, tags=["owners"])
-async def read_owner_endpoint(owner_id: int, session: SessionDep):
+async def read_owner_endpoint(owner_id: uuid.UUID, session: SessionDep):
     return read_owner_service(session=session, owner_id=owner_id)
 
 
