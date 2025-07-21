@@ -24,7 +24,7 @@ def create_pass_service(pass_data: PassCreate, session: SessionDep):
         raise HTTPException(status_code=400, detail="owner_id is required")
 
     try:
-        owner_id = uuid.UUID(owner_id_raw)
+        owner_id: uuid.UUID = owner_id_raw
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid UUID format for owner_id")
 
