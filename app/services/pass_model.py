@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 import uuid
 from fastapi import APIRouter, HTTPException, status
 from app.crud.owner import read_owner
-from app.crud.pass_model import create_pass, list_passes, update_pass
+from app.crud.pass_model import create_pass, list_passes, read_pass, update_pass
 from app.models.owner import Owner
 from app.schemas.pass_model import PassCreate, PassUpdate
 from app.core.db import SessionDep
@@ -43,14 +43,14 @@ def list_passes_service(session: SessionDep):
     return list_passes(session)
 
 
-def read_owner_service(owner_id: uuid.UUID, session: SessionDep):
-    owner_db = read_owner(session=session, owner_id=owner_id)
-    if not owner_db:
+def read_pass_service(pass_id: uuid.UUID, session: SessionDep):
+    pass_db = read_pass(session=session, pass_id=pass_id)
+    if not pass_db:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Owner does not exist"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Pass does not exist"
         )
     # This function retrieves a customer from the database using the provided customer_id.
-    return owner_db
+    return pass_db
 
 
 def delete_owner_service(owner_id: int, session: SessionDep):
@@ -63,7 +63,7 @@ def delete_owner_service(owner_id: int, session: SessionDep):
     return delete_owner(owner_db, session)
 
 
-# def update_pass_service(pass_id: uuid.UUID, owner_data: PassUpdate, session: SessionDep):
+# def update_pass_service(pass_id: uuid.UUID, pass_data: PassUpdate, session: SessionDep):
 #     return update_pass(session=session, owner_id=owner_id, owner_data=owner_data)
 #     owner_db = read_owner(session=session, owner_id=owner_id)
 #     if not owner_db:

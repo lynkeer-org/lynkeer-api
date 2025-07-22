@@ -19,7 +19,7 @@ class OwnerBase(SQLModel):
     @classmethod
     def validate_email(cls, value):
         session = Session(engine)
-        query = select(Owner).where(Owner.email == value)
+        query = select(Owner).where(Owner.email == value).where(Owner.active == True)
         email_exists = session.exec(query).first()
         if email_exists:
             raise ValueError("Email already registered")
@@ -30,7 +30,7 @@ class OwnerBase(SQLModel):
     @classmethod
     def validate_phone(cls, value):
         session = Session(engine)
-        query = select(Owner).where(Owner.phone == value)
+        query = select(Owner).where(Owner.phone == value).where(Owner.active == True)
         phone_exists = session.exec(query).first()
         if phone_exists:
             raise ValueError("Phone already registered")

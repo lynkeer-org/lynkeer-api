@@ -36,7 +36,7 @@ def read_owner_service(owner_id: uuid.UUID, session: SessionDep):
     return owner_db
 
 
-def delete_owner_service(owner_id: int, session: SessionDep):
+def delete_owner_service(owner_id: uuid.UUID, session: SessionDep):
     owner_db = read_owner(session=session, owner_id=owner_id)
     if not owner_db:
         raise HTTPException(
@@ -46,7 +46,9 @@ def delete_owner_service(owner_id: int, session: SessionDep):
     return delete_owner(owner_db, session)
 
 
-def update_owner_service(owner_id: int, owner_data: OwnerUpdate, session: SessionDep):
+def update_owner_service(
+    owner_id: uuid.UUID, owner_data: OwnerUpdate, session: SessionDep
+):
     owner_db = read_owner(session=session, owner_id=owner_id)
     if not owner_db:
         raise HTTPException(

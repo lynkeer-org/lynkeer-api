@@ -8,7 +8,12 @@ from app.schemas.owner import OwnerUpdate
 from app.models.owner import Owner
 from fastapi import APIRouter, status
 from app.core.db import SessionDep
-from app.services.owner import list_owners_service, read_owner_service
+from app.services.owner import (
+    delete_owner_service,
+    list_owners_service,
+    read_owner_service,
+    update_owner_service,
+)
 import uuid
 
 router = APIRouter()
@@ -25,8 +30,8 @@ async def read_owner_endpoint(owner_id: uuid.UUID, session: SessionDep):
 
 
 @router.delete("/owners/{owner_id}", tags=["owners"])
-async def delete_owner_endpoint(owner_id: int, session: SessionDep):
-    return delete_owner(session=session, owner_id=owner_id)
+async def delete_owner_endpoint(owner_id: uuid.UUID, session: SessionDep):
+    return delete_owner_service(session=session, owner_id=owner_id)
 
 
 @router.patch(
@@ -36,6 +41,8 @@ async def delete_owner_endpoint(owner_id: int, session: SessionDep):
     tags=["owners"],
 )
 async def update_owner_endpoint(
-    owner_id: int, owner_data: OwnerUpdate, session: SessionDep
+    owner_id: uuid.UUID, owner_data: OwnerUpdate, session: SessionDep
 ):
-    return update_owner(session=session, owner_id=owner_id, owner_data=owner_data)
+    return update_owner_service(
+        session=session, owner_id=owner_id, owner_data=owner_data
+    )

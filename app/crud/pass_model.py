@@ -24,7 +24,7 @@ def read_pass(pass_id: uuid.UUID, session: SessionDep):
     pass_db = session.get(PassModel, pass_id)
     if not pass_db:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Owner does not exist"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Pass does not exist"
         )
     # This function retrieves a customer from the database using the provided customer_id.
     return pass_db

@@ -1,6 +1,6 @@
 from sqlmodel import select
 from app.models.owner import Owner
-from app.schemas.owner import OwnerCreate, OwnerUpdate
+from app.schemas.owner import OwnerCreate, OwnerDelete, OwnerUpdate
 from app.core.hashing import hash_password
 from fastapi import HTTPException, status
 from app.core.db import SessionDep
@@ -30,8 +30,10 @@ def read_owner(owner_id: uuid.UUID, session: SessionDep):
 
 
 def delete_owner(owner: Owner, session: SessionDep):
-    session.delete(owner)
+    owner.active = False  # Mark the owner as deleted
+    session.add(owner)
     session.commit()
+    session.refresh(owner)
     return {"message": "Owner deleted successfully"}
 
 
