@@ -20,6 +20,13 @@ class PassBase(SQLModel):
     google_class_id: str = Field(default=None)
     apple_pass_type_identifier: str = Field(default=None)
 
+    @field_validator("stamp_goal")
+    @classmethod
+    def validate_stamp_goal(cls, value):
+        if value is not None and value <= 0:
+            raise ValueError("stamp_goal must be greater than 0")
+        return value
+
 
 class PassModel(PassBase, table=True):
     id: uuid.UUID | None = Field(

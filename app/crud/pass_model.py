@@ -31,8 +31,11 @@ def read_pass(pass_id: uuid.UUID, session: SessionDep):
 
 
 def delete_pass(pass_model: PassModel, session: SessionDep):
-    session.delete(pass_model)
+    pass_model.active = False  # Mark the owner as deleted
+    session.add(pass_model)
     session.commit()
+    session.refresh(pass_model)
+
     return {"message": "pass deleted successfully"}
 
 

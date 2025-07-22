@@ -3,7 +3,13 @@ from fastapi import HTTPException, status
 import uuid
 from fastapi import APIRouter, HTTPException, status
 from app.crud.owner import read_owner
-from app.crud.pass_model import create_pass, list_passes, read_pass, update_pass
+from app.crud.pass_model import (
+    create_pass,
+    delete_pass,
+    list_passes,
+    read_pass,
+    update_pass,
+)
 from app.models.owner import Owner
 from app.schemas.pass_model import PassCreate, PassUpdate
 from app.core.db import SessionDep
@@ -35,6 +41,10 @@ def create_pass_service(pass_data: PassCreate, session: SessionDep):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Owner does not exist"
         )
+    if not owner.active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Owner is not active"
+        )
     pass_model = PassModel.model_validate(pass_data_dict)
     return create_pass(pass_model, session)
 
@@ -53,22 +63,21 @@ def read_pass_service(pass_id: uuid.UUID, session: SessionDep):
     return pass_db
 
 
-def delete_owner_service(owner_id: int, session: SessionDep):
-    owner_db = read_owner(session=session, owner_id=owner_id)
-    if not owner_db:
+def delete_pass_service(pass_id: uuid.UUID, session: SessionDep):
+    pass_db = read_pass(session=session, pass_id=pass_id)
+    if not pass_db:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Owner does not exist"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Pass does not exist"
         )
 
-    return delete_owner(owner_db, session)
+    return delete_pass(pass_db, session)
 
 
-# def update_pass_service(pass_id: uuid.UUID, pass_data: PassUpdate, session: SessionDep):
-#     return update_pass(session=session, owner_id=owner_id, owner_data=owner_data)
-#     owner_db = read_owner(session=session, owner_id=owner_id)
-#     if not owner_db:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND, detail="Owner does not exist"
-#         )
+def update_pass_service(pass_id: uuid.UUID, pass_data: PassUpdate, session: SessionDep):
+    pass_db = read_pass(session=session, pass_id=pass_id)
+    if not pass_db:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Pass does not exist"
+        )
 
-#     return update_owner(owner_db, owner_data, session)
+    return update_pass(pass_db, pass_data, session)
