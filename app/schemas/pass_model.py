@@ -23,6 +23,7 @@ class PassModelResponse(BaseModel):
 
 class PassCreate(PassBase):
     owner_id: uuid.UUID = Field(foreign_key="owner.id")
+    pass_type_id: uuid.UUID = Field(foreign_key="passtype.id")
 
 
 class PassUpdate(PassBase):

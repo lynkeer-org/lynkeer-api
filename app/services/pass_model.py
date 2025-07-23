@@ -10,6 +10,7 @@ from app.crud.pass_model import (
     read_pass,
     update_pass,
 )
+from app.crud.pass_type import read_pass_type
 from app.models.owner import Owner
 from app.schemas.pass_model import PassCreate, PassUpdate
 from app.core.db import SessionDep
@@ -45,6 +46,24 @@ def create_pass_service(pass_data: PassCreate, session: SessionDep):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Owner is not active"
         )
+    # Validate the pass_type_id
+    pass_type_id_raw = pass_data_dict.get("pass_type_id")
+    if not pass_type_id_raw:
+        raise HTTPException(status_code=400, detail="pass_type_id is required")
+    try:
+        pass_type_id: uuid.UUID = pass_type_id_raw
+    except ValueError:
+        raise HTTPException(
+            status_code=400, detail="Invalid UUID format for pass_type_id"
+        )
+    pass_type = read_pass_type(
+        session=session, pass_type_id=pass_type_id
+    )  # Retrieve the pass_type using the pass_type_id
+    if not pass_type:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Pass type does not exist"
+        )
+
     pass_model = PassModel.model_validate(pass_data_dict)
     return create_pass(pass_model, session)
 
