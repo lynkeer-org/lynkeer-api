@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.models.owner import Owner
     from app.models.pass_type import PassType
+    from app.models.pass_field import PassField
 
 
 class PassBase(SQLModel):
@@ -38,5 +39,6 @@ class PassModel(PassBase, table=True):
     owner: "Owner" = Relationship(back_populates="passes")
     pass_type_id: uuid.UUID = Field(foreign_key="passtype.id")
     pass_type: "PassType" = Relationship(back_populates="passes")
+    fields: list["PassField"] = Relationship(back_populates="pass_model")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     active: bool | None = Field(default=True)
