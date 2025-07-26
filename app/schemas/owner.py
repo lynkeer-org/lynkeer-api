@@ -18,8 +18,15 @@ class OwnerCreate(OwnerBase):
     password: str
 
 
-class OwnerUpdate(OwnerBase):
-    pass
+class OwnerUpdate(BaseModel):
+    first_name: str
+    last_name: str
+    email: EmailStr
+    phone: str
+
+
+class OwnerDelete(BaseModel):
+    active: bool = False  # Set active to False to mark as deleted
 
 
 class OwnerLogin(BaseModel):
