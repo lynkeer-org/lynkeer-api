@@ -6,6 +6,7 @@ from app.models.pass_type import PassType
 from app.schemas.pass_type import PassTypeCreate, PassTypeUpdate
 from app.services.pass_type import (
     create_pass_type_service,
+    delete_pass_type_service,
     list_pass_types_service,
     read_pass_type_service,
     update_pass_type_service,
@@ -49,3 +50,11 @@ async def update_pass_type_endpoint(
     return update_pass_type_service(
         session=session, pass_type_id=pass_type_id, pass_type_data=pass_type_data
     )
+
+
+@router.delete(
+    "/types-passes/{pass_type_id}",
+    tags=["types-passes"],
+)
+async def delete_pass_type_endpoint(pass_type_id: uuid.UUID, session: SessionDep):
+    return delete_pass_type_service(session=session, pass_type_id=pass_type_id)

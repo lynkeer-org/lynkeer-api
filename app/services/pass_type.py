@@ -1,6 +1,7 @@
 from app.core.db import SessionDep
 from app.crud.pass_type import (
     create_pass_type,
+    delete_pass_type,
     list_pass_types,
     read_pass_type,
     update_pass_type,
@@ -42,3 +43,13 @@ def update_pass_type_service(
         )
 
     return update_pass_type(pass_type_db, pass_type_data, session)
+
+
+def delete_pass_type_service(pass_type_id: uuid.UUID, session: SessionDep):
+    pass_type_db = read_pass_type(session=session, pass_type_id=pass_type_id)
+    if not pass_type_db:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="The pass type does not exist"
+        )
+
+    return delete_pass_type(pass_type_db, session)

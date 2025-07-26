@@ -40,3 +40,12 @@ def update_pass_type(
     session.commit()
     session.refresh(pass_type)
     return pass_type
+
+
+def delete_pass_type(pass_type: PassType, session: SessionDep):
+    pass_type.active = False  # Mark the owner as deleted
+    session.add(pass_type)
+    session.commit()
+    session.refresh(pass_type)
+
+    return {"message": "pass type deleted successfully"}

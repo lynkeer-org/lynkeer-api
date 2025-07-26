@@ -4,9 +4,10 @@ from app.crud.owner import (
     read_owner,
     update_owner,
 )
+from app.models.pass_model import PassModel
 from app.schemas.owner import OwnerUpdate
 from app.models.owner import Owner
-from fastapi import APIRouter, status
+from fastapi import APIRouter, HTTPException, status
 from app.core.db import SessionDep
 from app.services.owner import (
     delete_owner_service,
@@ -46,3 +47,15 @@ async def update_owner_endpoint(
     return update_owner_service(
         session=session, owner_id=owner_id, owner_data=owner_data
     )
+
+
+@router.get(
+    "/owners/{owner_id}/passes", response_model=list[PassModel], tags=["owners"]
+)
+async def get_owner_passes_endpoint(owner_id: uuid.UUID, session: SessionDep):
+    owner = read_owner_service(session=session, owner_id=owner_id)
+    if not owner:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Owner does not exist"
+        )
+    return owner.passes  # Assuming 'passes' is a relationship in the Owner model
