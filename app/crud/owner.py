@@ -1,16 +1,17 @@
 from sqlmodel import select
 from app.models.owner import Owner
-from app.schemas.owner import OwnerCreate, OwnerUpdate
+from app.schemas.owner import OwnerCreate, OwnerDelete, OwnerUpdate
 from app.core.hashing import hash_password
 from fastapi import HTTPException, status
 from app.core.db import SessionDep
+import uuid
 
 
-def create_owner(owner: Owner, session: SessionDep):
-    session.add(owner)
+def create_owner(owner_db: Owner, session: SessionDep):
+    session.add(owner_db)
     session.commit()
-    session.refresh(owner)
-    return owner
+    session.refresh(owner_db)
+    return owner_db
 
 
 def list_owners(session: SessionDep):
@@ -18,7 +19,7 @@ def list_owners(session: SessionDep):
     return session.exec(select(Owner)).all()
 
 
-def read_owner(owner_id: int, session: SessionDep):
+def read_owner(owner_id: uuid.UUID, session: SessionDep):
     owner_db = session.get(Owner, owner_id)
     if not owner_db:
         raise HTTPException(
@@ -29,8 +30,10 @@ def read_owner(owner_id: int, session: SessionDep):
 
 
 def delete_owner(owner: Owner, session: SessionDep):
-    session.delete(owner)
+    owner.active = False  # Mark the owner as deleted
+    session.add(owner)
     session.commit()
+    session.refresh(owner)
     return {"message": "Owner deleted successfully"}
 
 
