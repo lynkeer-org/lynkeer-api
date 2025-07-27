@@ -1,8 +1,12 @@
 from pydantic import EmailStr, field_validator
-from sqlmodel import SQLModel, Field, Session, select
+from sqlmodel import SQLModel, Field, Session, select, Relationship
 from datetime import datetime, timezone
 from app.core.db import engine
 import uuid
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.pass_model import PassModel
 
 
 class OwnerBase(SQLModel):
@@ -15,7 +19,7 @@ class OwnerBase(SQLModel):
     @classmethod
     def validate_email(cls, value):
         session = Session(engine)
-        query = select(Owner).where(Owner.email == value)
+        query = select(Owner).where(Owner.email == value).where(Owner.active == True)
         email_exists = session.exec(query).first()
         if email_exists:
             raise ValueError("Email already registered")
@@ -26,7 +30,7 @@ class OwnerBase(SQLModel):
     @classmethod
     def validate_phone(cls, value):
         session = Session(engine)
-        query = select(Owner).where(Owner.phone == value)
+        query = select(Owner).where(Owner.phone == value).where(Owner.active == True)
         phone_exists = session.exec(query).first()
         if phone_exists:
             raise ValueError("Phone already registered")
@@ -36,7 +40,10 @@ class OwnerBase(SQLModel):
 
 class Owner(OwnerBase, table=True):
     # id: int | None = Field(default=None, primary_key=True)
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    id: uuid.UUID | None = Field(
+        default_factory=uuid.uuid4, primary_key=True, index=True
+    )
     password_hash: str = Field(default=None)
+    passes: list["PassModel"] = Relationship(back_populates="owner")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     active: bool | None = Field(default=True)
