@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 from app.core.hashing import verify_password
 from app.core.security import create_access_token
+from app.services.auth import login_owner_service
 from app.services.owner import create_owner_service
 from app.models.owner import Owner
 from app.schemas.owner import OwnerLogin, OwnerCreate, OwnerResponse
@@ -19,14 +20,6 @@ async def create_owner_endpoint(owner_data: OwnerCreate, session: SessionDep):
 
 
 @router.post("/signin")
-def login_owner(login_data: OwnerLogin, session: SessionDep):
-    query = select(Owner).where(Owner.email == login_data.email)
-    owner = session.exec(query).first()
+def login_owner_endpoint(login_data: OwnerLogin, session: SessionDep):
 
-    if not owner or not verify_password(login_data.password, owner.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
-        )
-
-    token = create_access_token({"sub": str(owner.id)})
-    return {"access_token": token, "token_type": "bearer"}
+    return login_owner_service(login_data=login_data, session=session)

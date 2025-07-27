@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 class PassBase(SQLModel):
     title: str = Field(default=None)
     stamp_goal: int = Field(default=None)
-    qr_url: str = Field(default=None)
     logo_url: str = Field(default=None)
     text_color: str = Field(default=None)
     background_color: str = Field(default=None)
