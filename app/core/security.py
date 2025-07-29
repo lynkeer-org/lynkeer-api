@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from fastapi import HTTPException, status, Depends
-from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
+from fastapi.security import APIKeyHeader
 from app.core.config import settings
 from datetime import timezone
 

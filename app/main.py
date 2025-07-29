@@ -4,6 +4,7 @@ from app.api.v1.endpoints import (
     auth,
     owner,
     pass_model,
+    pass_template,
     pass_type,
     pass_field,
 )  # This should work if structure is correct
@@ -28,6 +29,7 @@ app.include_router(
 app.include_router(pass_model.router, dependencies=[Depends(get_current_user)])
 app.include_router(pass_type.router, dependencies=[Depends(get_current_user)])
 app.include_router(pass_field.router, dependencies=[Depends(get_current_user)])
+app.include_router(pass_template.router, dependencies=[Depends(get_current_user)])
 
 
 @app.get("/")
