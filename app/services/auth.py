@@ -14,5 +14,19 @@ def login_owner_service(login_data: OwnerLogin, session: SessionDep):
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
 
-    token = create_access_token({"sub": str(owner.id)})
-    return {"access_token": token, "token_type": "bearer"}
+    token = create_access_token(
+        {
+            "sub": str(owner.id),
+            "email": owner.email,
+            "name": f"{owner.first_name} {owner.last_name}",
+        }
+    )
+    # return {"access_token": token, "token_type": "bearer"}
+    return {
+        "token": token,
+        "user": {
+            "id": str(owner.id),
+            "email": owner.email,
+            "name": f"{owner.first_name} {owner.last_name}",
+        },
+    }

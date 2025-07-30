@@ -5,6 +5,7 @@ from sqlmodel import Field
 from app.models.owner import OwnerBase
 import uuid
 
+from app.models.pass_field import PassFieldBase
 from app.models.pass_model import PassBase
 
 
