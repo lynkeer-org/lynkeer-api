@@ -26,27 +26,23 @@ router = APIRouter()
     "/passes",
     response_model=PassModelResponse,
     status_code=status.HTTP_201_CREATED,
-    tags=["passes"],
 )
 async def create_pass(pass_data: PassCreate, session: SessionDep):
     return create_pass_service(pass_data=pass_data, session=session)
 
 
-@router.get("/passes", response_model=list[PassModel], tags=["passes"])
+@router.get("/passes", response_model=list[PassModel])
 async def list_passes_endpoint(session: SessionDep):
     return list_passes_service(session)
 
 
-@router.get("/passes/{pass_id}", response_model=PassModel, tags=["passes"])
+@router.get("/passes/{pass_id}", response_model=PassModel)
 async def read_pass_endpoint(pass_id: uuid.UUID, session: SessionDep):
     return read_pass_service(session=session, pass_id=pass_id)
 
 
 @router.patch(
-    "/passes/{pass_id}",
-    response_model=PassModel,
-    status_code=status.HTTP_201_CREATED,
-    tags=["passes"],
+    "/passes/{pass_id}", response_model=PassModel, status_code=status.HTTP_201_CREATED
 )
 async def update_pass_endpoint(
     pass_id: uuid.UUID, pass_data: PassUpdate, session: SessionDep
@@ -54,6 +50,6 @@ async def update_pass_endpoint(
     return update_pass_service(session=session, pass_id=pass_id, pass_data=pass_data)
 
 
-@router.delete("/passes/{pass_id}", tags=["passes"])
+@router.delete("/passes/{pass_id}")
 async def delete_pass_endpoint(pass_id: uuid.UUID, session: SessionDep):
     return delete_pass_service(session=session, pass_id=pass_id)

@@ -2,13 +2,13 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from fastapi import HTTPException, status, Depends
-from fastapi.security import APIKeyHeader
+from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 from app.core.config import settings
 from datetime import timezone
 
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/signin")
-oauth2_scheme = APIKeyHeader(name="Authorization")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/sign-in")
+# oauth2_scheme = APIKeyHeader(name="Authorization")
 # Secret key & algorithm from config
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM

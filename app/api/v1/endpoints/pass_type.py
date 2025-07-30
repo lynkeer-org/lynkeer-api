@@ -20,20 +20,17 @@ router = APIRouter()
     "/types-passes",
     response_model=PassType,
     status_code=status.HTTP_201_CREATED,
-    tags=["types-passes"],
 )
 async def create_pass_type(pass_type_data: PassTypeCreate, session: SessionDep):
     return create_pass_type_service(pass_type_data=pass_type_data, session=session)
 
 
-@router.get("/types-passes", response_model=list[PassType], tags=["types-passes"])
+@router.get("/types-passes", response_model=list[PassType])
 async def list_pass_endpoint(session: SessionDep):
     return list_pass_types_service(session)
 
 
-@router.get(
-    "/types-passes/{type_pass_id}", response_model=PassType, tags=["types-passes"]
-)
+@router.get("/types-passes/{type_pass_id}", response_model=PassType)
 async def read_pass_type_endpoint(pass_type_id: uuid.UUID, session: SessionDep):
     return read_pass_type_service(session=session, pass_type_id=pass_type_id)
 
@@ -42,7 +39,6 @@ async def read_pass_type_endpoint(pass_type_id: uuid.UUID, session: SessionDep):
     "/types-passes/{pass_type_id}",
     response_model=PassType,
     status_code=status.HTTP_201_CREATED,
-    tags=["types-passes"],
 )
 async def update_pass_type_endpoint(
     pass_type_id: uuid.UUID, pass_type_data: PassTypeUpdate, session: SessionDep
@@ -54,7 +50,6 @@ async def update_pass_type_endpoint(
 
 @router.delete(
     "/types-passes/{pass_type_id}",
-    tags=["types-passes"],
 )
 async def delete_pass_type_endpoint(pass_type_id: uuid.UUID, session: SessionDep):
     return delete_pass_type_service(session=session, pass_type_id=pass_type_id)

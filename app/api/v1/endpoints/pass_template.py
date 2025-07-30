@@ -11,7 +11,6 @@ router = APIRouter()
     "/pass-template",
     response_model=PassModel,
     status_code=status.HTTP_201_CREATED,
-    tags=["passes"],
 )
 def create_pass_template(pass_template_data: PassTemplate, session: SessionDep):
     return create_pass_template_service(pass_template_data, session=session)

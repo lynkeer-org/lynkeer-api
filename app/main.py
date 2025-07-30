@@ -19,17 +19,35 @@ app = FastAPI(
 )  # This is a FastAPI application instance. The lifespan parameter is used to create and drop the database tables when the application starts and stops.
 
 app.include_router(
-    owner.router, dependencies=[Depends(get_current_user)]
+    owner.router,
+    prefix="/api/v1",
+    tags=["Owners"],
+    dependencies=[Depends(get_current_user)],
 )  # This should work if structure is correct
 app.include_router(
     auth.router,
-    prefix="/api/v1/auth",
+    prefix="/api/v1",
     tags=["Authentication"],
 )
-app.include_router(pass_model.router, dependencies=[Depends(get_current_user)])
-app.include_router(pass_type.router, dependencies=[Depends(get_current_user)])
-app.include_router(pass_field.router, dependencies=[Depends(get_current_user)])
-app.include_router(pass_template.router, dependencies=[Depends(get_current_user)])
+app.include_router(
+    pass_model.router,
+    prefix="/api/v1",
+    tags=["Passes"],
+    dependencies=[Depends(get_current_user)],
+)
+app.include_router(
+    pass_type.router,
+    prefix="/api/v1",
+    tags=["Types-passes"],
+    dependencies=[Depends(get_current_user)],
+)
+
+app.include_router(
+    pass_template.router,
+    prefix="/api/v1",
+    tags=["Pass-templates"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @app.get("/")

@@ -20,17 +20,17 @@ import uuid
 router = APIRouter()
 
 
-@router.get("/owners", response_model=list[Owner], tags=["owners"])
+@router.get("/owners", response_model=list[Owner])
 async def list_owners_endpoint(session: SessionDep):
     return list_owners_service(session)
 
 
-@router.get("/owners/{owner_id}", response_model=Owner, tags=["owners"])
+@router.get("/owners/{owner_id}", response_model=Owner)
 async def read_owner_endpoint(owner_id: uuid.UUID, session: SessionDep):
     return read_owner_service(session=session, owner_id=owner_id)
 
 
-@router.delete("/owners/{owner_id}", tags=["owners"])
+@router.delete("/owners/{owner_id}")
 async def delete_owner_endpoint(owner_id: uuid.UUID, session: SessionDep):
     return delete_owner_service(session=session, owner_id=owner_id)
 
@@ -39,7 +39,6 @@ async def delete_owner_endpoint(owner_id: uuid.UUID, session: SessionDep):
     "/owners/{owner_id}",
     response_model=Owner,
     status_code=status.HTTP_201_CREATED,
-    tags=["owners"],
 )
 async def update_owner_endpoint(
     owner_id: uuid.UUID, owner_data: OwnerUpdate, session: SessionDep
@@ -49,9 +48,7 @@ async def update_owner_endpoint(
     )
 
 
-@router.get(
-    "/owners/{owner_id}/passes", response_model=list[PassModel], tags=["owners"]
-)
+@router.get("/owners/{owner_id}/passes", response_model=list[PassModel])
 async def get_owner_passes_endpoint(owner_id: uuid.UUID, session: SessionDep):
     owner = read_owner_service(session=session, owner_id=owner_id)
     if not owner:
