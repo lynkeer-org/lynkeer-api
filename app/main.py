@@ -22,7 +22,7 @@ app.include_router(
     owner.router,
     prefix="/api/v1",
     tags=["Owners"],
-    dependencies=[Depends(get_current_user)],
+    # dependencies=[Depends(get_current_user)],
 )  # This should work if structure is correct
 app.include_router(
     auth.router,
@@ -39,14 +39,14 @@ app.include_router(
     pass_type.router,
     prefix="/api/v1",
     tags=["Types-passes"],
-    dependencies=[Depends(get_current_user)],
+    # dependencies=[Depends(get_current_user)],
 )
 
 app.include_router(
     pass_template.router,
     prefix="/api/v1",
     tags=["Pass-templates"],
-    dependencies=[Depends(get_current_user)],
+    # dependencies=[Depends(get_current_user)],
 )
 
 

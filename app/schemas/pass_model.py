@@ -14,7 +14,6 @@ class PassModelResponse(BaseModel):
     owner_id: uuid.UUID = Field(foreign_key="owner.id")
     title: str
     stamp_goal: int
-    qr_url: str
     logo_url: str
     text_color: str
     background_color: str
