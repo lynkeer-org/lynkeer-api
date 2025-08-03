@@ -1,9 +1,3 @@
-from app.crud.owner import (
-    delete_owner,
-    list_owners,
-    read_owner,
-    update_owner,
-)
 from app.models.pass_model import PassModel
 from app.schemas.owner import OwnerUpdate
 from app.models.owner import Owner

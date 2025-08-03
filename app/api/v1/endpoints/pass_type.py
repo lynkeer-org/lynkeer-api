@@ -1,5 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 from app.core.db import SessionDep
 from app.models.pass_type import PassType

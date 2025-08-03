@@ -1,7 +1,6 @@
 from sqlmodel import select
 from app.models.owner import Owner
-from app.schemas.owner import OwnerCreate, OwnerDelete, OwnerUpdate
-from app.core.hashing import hash_password
+from app.schemas.owner import OwnerUpdate
 from fastapi import HTTPException, status
 from app.core.db import SessionDep
 import uuid

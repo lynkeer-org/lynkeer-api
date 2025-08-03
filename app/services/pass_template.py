@@ -5,11 +5,16 @@ from app.schemas.pass_field import PassFieldCreate
 from app.schemas.pass_template import PassTemplate, PassTemplateResponse
 from app.services.pass_field import create_pass_field_service
 from app.services.pass_model import create_pass_service
+import uuid
 
 
-def create_pass_template_service(pass_template_data: PassTemplate, session: SessionDep):
+def create_pass_template_service(
+    pass_template_data: PassTemplate, session: SessionDep, owner_id: uuid.UUID
+):
     # 1. Create the PassModel
-    created_pass = create_pass_service(pass_template_data, session=session)
+    created_pass = create_pass_service(
+        pass_template_data, session=session, owner_id=owner_id
+    )
 
     # 2. Create the related PassFields
     for field_data in pass_template_data.pass_field:

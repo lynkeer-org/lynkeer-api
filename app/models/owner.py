@@ -19,7 +19,7 @@ class OwnerBase(SQLModel):
     @classmethod
     def validate_email(cls, value):
         session = Session(engine)
-        query = select(Owner).where(Owner.email == value).where(Owner.active == True)
+        query = select(Owner).where(Owner.email == value).where(Owner.active)
         email_exists = session.exec(query).first()
         if email_exists:
             raise ValueError("Email already registered")
@@ -30,7 +30,7 @@ class OwnerBase(SQLModel):
     @classmethod
     def validate_phone(cls, value):
         session = Session(engine)
-        query = select(Owner).where(Owner.phone == value).where(Owner.active == True)
+        query = select(Owner).where(Owner.phone == value).where(Owner.active)
         phone_exists = session.exec(query).first()
         if phone_exists:
             raise ValueError("Phone already registered")
@@ -46,4 +46,4 @@ class Owner(OwnerBase, table=True):
     password_hash: str = Field(default=None)
     passes: list["PassModel"] = Relationship(back_populates="owner")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    active: bool | None = Field(default=True)
+    active: bool = Field(default=True)

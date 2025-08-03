@@ -6,9 +6,7 @@ from app.api.v1.endpoints import (
     pass_model,
     pass_template,
     pass_type,
-    pass_field,
 )  # This should work if structure is correct
-from app import models
 
 from app.core.db import create_all_tables
 from app.core.security import get_current_user
@@ -22,7 +20,7 @@ app.include_router(
     owner.router,
     prefix="/api/v1",
     tags=["Owners"],
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
 )  # This should work if structure is correct
 app.include_router(
     auth.router,
@@ -33,20 +31,20 @@ app.include_router(
     pass_model.router,
     prefix="/api/v1",
     tags=["Passes"],
-    dependencies=[Depends(get_current_user)],
+    # dependencies=[Depends(get_current_user)],
 )
 app.include_router(
     pass_type.router,
     prefix="/api/v1",
     tags=["Types-passes"],
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
 )
 
 app.include_router(
     pass_template.router,
     prefix="/api/v1",
     tags=["Pass-templates"],
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
 )
 
 
