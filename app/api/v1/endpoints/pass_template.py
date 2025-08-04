@@ -15,7 +15,7 @@ router = APIRouter()
     response_model=PassTemplateResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def create_pass_template(
+async def create_pass_template_endpoint(
     pass_template_data: PassTemplate,
     session: SessionDep,
     current_owner: Owner = Depends(get_current_user),
@@ -32,7 +32,7 @@ async def create_pass_template(
 
 
 @router.get("/pass-template", response_model=list[PassTemplateResponse])
-async def list_pass_templates(
+async def list_passes_template_endpoint(
     session: SessionDep, current_owner: Owner = Depends(get_current_user)
 ):
     if current_owner.id is None:
