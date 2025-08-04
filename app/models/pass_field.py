@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.pass_model import PassModel
-    from app.models.pass_model import PassBase
 
 
 class PassFieldBase(SQLModel):

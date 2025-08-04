@@ -6,10 +6,6 @@ from sqlmodel import SQLModel
 from alembic import context
 
 
-from app.models.owner import Owner
-from app.models.pass_model import PassModel
-from app.models.pass_type import PassType
-from app.models.pass_field import PassField
 
 
 # this is the Alembic Config object, which provides

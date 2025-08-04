@@ -6,7 +6,7 @@ from app.crud.owner import (
     update_owner,
 )
 from app.models.owner import Owner
-from app.schemas.owner import OwnerCreate, OwnerLogin, OwnerUpdate
+from app.schemas.owner import OwnerCreate, OwnerUpdate
 from app.core.hashing import hash_password
 from app.core.db import SessionDep
 from fastapi import HTTPException, status

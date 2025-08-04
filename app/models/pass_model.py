@@ -1,7 +1,7 @@
-from pydantic import EmailStr, field_validator
-from sqlmodel import SQLModel, Field, Session, select, Relationship
+from pydantic import field_validator
+from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, timezone
-from app.core.db import engine
+
 import uuid
 
 from typing import TYPE_CHECKING
@@ -25,8 +25,8 @@ class PassBase(SQLModel):
     @field_validator("stamp_goal")
     @classmethod
     def validate_stamp_goal(cls, value):
-        if value is not None and value <= 0:
-            raise ValueError("stamp_goal must be greater than 0")
+        if value is not None and value <= 1:
+            raise ValueError("stamp_goal must be greater than 1")
         return value
 
 
