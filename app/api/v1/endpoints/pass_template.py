@@ -32,5 +32,13 @@ async def create_pass_template(
 
 
 @router.get("/pass-template", response_model=list[PassTemplateResponse])
-async def list_pass_templates(session: SessionDep):
-    return list_passes_service(session)
+async def list_pass_templates(
+    session: SessionDep, current_owner: Owner = Depends(get_current_user)
+):
+    if current_owner.id is None:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Owner ID is missing or unauthorized.",
+        )
+    return list_passes_service(session, owner_id=current_owner.id)

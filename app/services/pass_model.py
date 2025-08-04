@@ -48,8 +48,8 @@ def create_pass_service(
     return create_pass(pass_model, session)
 
 
-def list_passes_service(session: SessionDep):
-    return list_passes(session)
+def list_passes_service(session: SessionDep, owner_id: uuid.UUID):
+    return list_passes(session, owner_id=owner_id)
 
 
 def read_pass_service(pass_id: uuid.UUID, session: SessionDep):

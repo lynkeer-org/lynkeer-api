@@ -19,10 +19,12 @@ def create_pass(pass_model_db: PassModel, session: SessionDep):
     return pass_model_db
 
 
-def list_passes(session: SessionDep):
+def list_passes(session: SessionDep, owner_id: uuid.UUID):
     # Get all passes and include their fields
 
-    query = select(PassModel).where(PassModel.active == True)
+    query = select(PassModel).where(
+        PassModel.owner_id == owner_id, PassModel.active == True
+    )
     passes = session.exec(query).all()
     result = []
     for p in passes:
