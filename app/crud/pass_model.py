@@ -1,10 +1,14 @@
 from sqlmodel import select
+from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 from app.core.db import SessionDep
 import uuid
 
+from app.crud.pass_field import read_pass_fields_by_pass_id
 from app.models.pass_model import PassModel
 from app.schemas.pass_model import PassUpdate
+from app.models.pass_field import PassField, PassFieldBase
+from app.schemas.pass_template import PassTemplateResponse
 
 
 def create_pass(pass_model_db: PassModel, session: SessionDep):
@@ -15,9 +19,27 @@ def create_pass(pass_model_db: PassModel, session: SessionDep):
     return pass_model_db
 
 
-def list_passes(session: SessionDep):
-    # This query selects all customers from the database and returns them as a list.
-    return session.exec(select(PassModel)).all()
+def list_passes(session: SessionDep, owner_id: uuid.UUID):
+    # Get all passes and include their fields
+
+    query = select(PassModel).where(
+        PassModel.owner_id == owner_id, PassModel.active == True
+    )
+    passes = session.exec(query).all()
+    result = []
+    for p in passes:
+        if p.id is not None:
+            pass_fields = read_pass_fields_by_pass_id(p.id, session)
+        else:
+            pass_fields = []
+        result.append(
+            PassTemplateResponse(
+                **p.model_dump(),
+                pass_field=[PassFieldBase.model_validate(f) for f in pass_fields]
+            )
+        )
+
+    return result
 
 
 def read_pass(pass_id: uuid.UUID, session: SessionDep):

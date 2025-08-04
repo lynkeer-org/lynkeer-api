@@ -1,10 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
-from sqlmodel import select
-from app.core.hashing import verify_password
-from app.core.security import create_access_token
+from fastapi import APIRouter, status
 from app.services.auth import login_owner_service
 from app.services.owner import create_owner_service
-from app.models.owner import Owner
 from app.schemas.owner import OwnerLogin, OwnerCreate, OwnerResponse
 from app.core.db import SessionDep
 
