@@ -28,6 +28,18 @@ def read_pass_field(pass_field_id: uuid.UUID, session: SessionDep):
     return pass_field_db
 
 
+def read_pass_fields_by_pass_id(pass_id: uuid.UUID, session: SessionDep):
+    pass_fields = session.exec(
+        select(PassField).where(PassField.pass_id == pass_id)
+    ).all()
+    if not pass_fields:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No pass fields found for this pass",
+        )
+    return pass_fields
+
+
 def update_pass_field(
     pass_field: PassField, pass_field_data: PassFieldUpdate, session: SessionDep
 ):

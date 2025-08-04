@@ -1,7 +1,6 @@
 from app.core.db import SessionDep
 from fastapi import HTTPException, status
 import uuid
-from fastapi import APIRouter, HTTPException, status
 from app.crud.owner import read_owner
 from app.crud.pass_model import (
     create_pass,
@@ -11,37 +10,18 @@ from app.crud.pass_model import (
     update_pass,
 )
 from app.crud.pass_type import read_pass_type
-from app.models.owner import Owner
 from app.schemas.pass_model import PassCreate, PassUpdate
-from app.core.db import SessionDep
 from app.models.pass_model import PassModel
-from sqlmodel import Field
-import uuid
-from app.models.pass_model import PassBase
-
-from app.schemas.pass_model import PassModelResponse
 
 
-def create_pass_service(pass_data: PassCreate, session: SessionDep):
+def create_pass_service(
+    pass_data: PassCreate, session: SessionDep, owner_id: uuid.UUID
+):
     pass_data_dict = pass_data.model_dump()
-    owner_id_raw = pass_data_dict.get(
-        "owner_id"
-    )  # Get the owner_id from the pass_data_dict
-    if not owner_id_raw:  # Check if owner_id is provided
-        raise HTTPException(status_code=400, detail="owner_id is required")
+    owner = read_owner(session=session, owner_id=owner_id)
+    if not owner:  # Check if owner_id is provided
+        raise HTTPException(status_code=400, detail="Owner not found")
 
-    try:
-        owner_id: uuid.UUID = owner_id_raw
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid UUID format for owner_id")
-
-    owner = read_owner(
-        session=session, owner_id=owner_id
-    )  # Retrieve the owner using the owner_id
-    if not owner:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Owner does not exist"
-        )
     if not owner.active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Owner is not active"
@@ -63,13 +43,13 @@ def create_pass_service(pass_data: PassCreate, session: SessionDep):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Pass type does not exist"
         )
-
+    pass_data_dict["owner_id"] = owner_id
     pass_model = PassModel.model_validate(pass_data_dict)
     return create_pass(pass_model, session)
 
 
-def list_passes_service(session: SessionDep):
-    return list_passes(session)
+def list_passes_service(session: SessionDep, owner_id: uuid.UUID):
+    return list_passes(session, owner_id=owner_id)
 
 
 def read_pass_service(pass_id: uuid.UUID, session: SessionDep):
