@@ -26,20 +26,7 @@ def list_passes(session: SessionDep, owner_id: uuid.UUID):
         PassModel.owner_id == owner_id, PassModel.active == True
     )
     passes = session.exec(query).all()
-    result = []
-    for p in passes:
-        if p.id is not None:
-            pass_fields = read_pass_fields_by_pass_id(p.id, session)
-        else:
-            pass_fields = []
-        result.append(
-            PassTemplateResponse(
-                **p.model_dump(),
-                pass_field=[PassFieldBase.model_validate(f) for f in pass_fields]
-            )
-        )
-
-    return result
+    return passes
 
 
 def read_pass(pass_id: uuid.UUID, session: SessionDep):
