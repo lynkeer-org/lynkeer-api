@@ -43,15 +43,17 @@ def list_passes_template_service(session: SessionDep, owner_id: uuid.UUID):
 
     # 2. For each PassModel, read the related PassFields
     result = []
-    for p in passes:
-        if p.id is not None:
-            pass_fields = read_pass_fields_by_pass_id(p.id, session)
+    for pass_model in passes:
+        if pass_model.id is not None:
+            pass_fields = read_pass_fields_by_pass_id(pass_model.id, session)
         else:
             pass_fields = []
         result.append(
             PassTemplateResponse(
-                **p.model_dump(),
-                pass_field=[PassFieldBase.model_validate(f) for f in pass_fields]
+                **pass_model.model_dump(),
+                pass_field=[
+                    PassFieldBase.model_validate(field) for field in pass_fields
+                ]
             )
         )
 

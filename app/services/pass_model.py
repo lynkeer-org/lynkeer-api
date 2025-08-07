@@ -6,7 +6,6 @@ from app.crud.pass_model import (
     create_pass,
     delete_pass,
     list_passes,
-    list_passes,
     read_pass,
     update_pass,
 )
