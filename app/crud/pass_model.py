@@ -54,6 +54,7 @@ def update_pass(pass_model: PassModel, pass_data: PassUpdate, session: SessionDe
     )  # exclude_unset=True option is used to exclude unset fields from the dictionary
     pass_model.sqlmodel_update(pass_data_dict)
     session.add(pass_model)
-    session.commit()
+    session.flush()
+    # session.commit()
     session.refresh(pass_model)
     return pass_model
