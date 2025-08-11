@@ -9,8 +9,7 @@ from app.schemas.pass_field import PassFieldUpdate
 
 def create_pass_field(pass_field_db: PassField, session: SessionDep):
     session.add(pass_field_db)
-    session.commit()
-    session.refresh(pass_field_db)
+    session.flush()
 
     return pass_field_db
 
@@ -49,15 +48,13 @@ def update_pass_field(
     pass_field.sqlmodel_update(pass_field_data_dict)
     session.add(pass_field)
     session.flush()
-    # session.commit()
-    session.refresh(pass_field)
+
     return pass_field
 
 
 def delete_pass_field(pass_field: PassField, session: SessionDep):
     pass_field.active = False  # Mark the pass field as deleted
     session.add(pass_field)
-    session.commit()
-    session.refresh(pass_field)
+    session.flush()
 
     return {"message": "Pass field deleted successfully"}

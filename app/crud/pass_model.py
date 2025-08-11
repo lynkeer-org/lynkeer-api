@@ -13,8 +13,7 @@ from app.schemas.pass_template import PassTemplateResponse
 
 def create_pass(pass_model_db: PassModel, session: SessionDep):
     session.add(pass_model_db)
-    session.commit()
-    session.refresh(pass_model_db)
+    session.flush()
 
     return pass_model_db
 
@@ -42,8 +41,7 @@ def read_pass(pass_id: uuid.UUID, session: SessionDep):
 def delete_pass(pass_model: PassModel, session: SessionDep):
     pass_model.active = False  # Mark the owner as deleted
     session.add(pass_model)
-    session.commit()
-    session.refresh(pass_model)
+    session.flush()
 
     return {"message": "pass deleted successfully"}
 
@@ -55,6 +53,5 @@ def update_pass(pass_model: PassModel, pass_data: PassUpdate, session: SessionDe
     pass_model.sqlmodel_update(pass_data_dict)
     session.add(pass_model)
     session.flush()
-    # session.commit()
-    session.refresh(pass_model)
+
     return pass_model

@@ -10,10 +10,10 @@ from app.core.db import SessionDep
 
 from app.crud.owner import read_owner
 
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/sign-in")
-# oauth2_scheme = APIKeyHeader(name="Authorization")
-# Secret key & algorithm from config
+
+
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
@@ -32,10 +32,6 @@ class OAuth2PasswordBearerWithBearerOnly(OAuth2):
         if scheme.lower() != "bearer":
             raise HTTPException(status_code=401, detail="No autorizado")
         return param
-
-
-# Usa esta clase personalizada
-# oauth2_scheme = OAuth2PasswordBearerWithBearerOnly(tokenUrl="/api/v1/sign-in")
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

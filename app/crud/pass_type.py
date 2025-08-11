@@ -9,8 +9,8 @@ from app.schemas.pass_type import PassTypeUpdate
 
 def create_pass_type(pass_type_db: PassType, session: SessionDep):
     session.add(pass_type_db)
-    session.commit()
-    session.refresh(pass_type_db)
+    session.flush()
+
     return pass_type_db
 
 
@@ -37,15 +37,14 @@ def update_pass_type(
     )  # exclude_unset=True option is used to exclude unset fields from the dictionary
     pass_type.sqlmodel_update(pass_type_data_dict)
     session.add(pass_type)
-    session.commit()
-    session.refresh(pass_type)
+    session.flush()
+
     return pass_type
 
 
 def delete_pass_type(pass_type: PassType, session: SessionDep):
     pass_type.active = False  # Mark the owner as deleted
     session.add(pass_type)
-    session.commit()
-    session.refresh(pass_type)
+    session.flush()
 
     return {"message": "pass type deleted successfully"}

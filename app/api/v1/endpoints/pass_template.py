@@ -11,6 +11,7 @@ from app.schemas.pass_template import (
 from app.services.pass_model import list_passes_service
 from app.services.pass_template import (
     create_pass_template_service,
+    delete_pass_template_service,
     list_passes_template_service,
     read_pass_template_service,
     update_pass_template_service,
@@ -98,4 +99,21 @@ async def update_pass_template_endpoint(
         pass_template_data=pass_template_data,
         session=session,
         owner_id=current_owner.id,
+    )
+
+
+@router.delete("/pass-template/{pass_id}")
+async def delete_pass_endpoint(
+    pass_id: uuid.UUID,
+    session: SessionDep,
+    current_owner: Owner = Depends(get_current_user),
+):
+    if current_owner.id is None:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Owner ID is missing or unauthorized.",
+        )
+    return delete_pass_template_service(
+        pass_id=pass_id, session=session, owner_id=current_owner.id
     )

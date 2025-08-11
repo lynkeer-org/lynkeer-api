@@ -9,9 +9,14 @@ from app.schemas.pass_template import (
     PassTemplateResponse,
     PassTemplateUpdate,
 )
-from app.services.pass_field import create_pass_field_service, update_pass_field_service
+from app.services.pass_field import (
+    create_pass_field_service,
+    delete_pass_field_service,
+    update_pass_field_service,
+)
 from app.services.pass_model import (
     create_pass_service,
+    delete_pass_service,
     list_passes_service,
     read_pass_service,
     update_pass_service,
@@ -99,49 +104,60 @@ def update_pass_template_service(
     session: SessionDep,
     owner_id: uuid.UUID,
 ):
-    try:
-        # 1. Read the existing PassModel
-        pass_db = read_pass_service(pass_id=pass_id, session=session)
-        if not pass_db or (pass_db.owner_id != owner_id):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Pass template does not exist",
-            )
-        # 2. I get the passupdate data
-        pass_update_data = PassUpdate.model_validate(
-            pass_template_data.model_dump(exclude={"pass_fields"})
-        )
-        # 3. Update the PassModel
-        updated_pass = update_pass_service(
-            pass_id=pass_id, pass_data=pass_update_data, session=session
-        )
-        # pass_data = PassModelResponse.model_validate(updated_pass.model_dump())
-        # 4. Update the PassFields
 
-        for field_data in pass_template_data.pass_fields:
-            pass_field_data = PassFieldUpdate.model_validate(
-                field_data.model_dump(exclude={"id"})
-            )
-            update_pass_field_service(
-                pass_field_id=field_data.id,
-                pass_field_data=pass_field_data,
-                session=session,
-            )
-
-        fields = read_pass_fields_by_pass_id(pass_id, session)
-
-        response = PassTemplateResponse(
-            **updated_pass.model_dump(),
-            pass_fields=[
-                PassFieldResponse.model_validate(field.model_dump()) for field in fields
-            ],
-        )
-        session.commit()  # Commit the session after all updates
-        return response
-
-    except Exception as e:
-        session.rollback()  # Rollback the session in case of error
+    # 1. Read the existing PassModel
+    pass_db = read_pass_service(pass_id=pass_id, session=session)
+    if not pass_db or (pass_db.owner_id != owner_id):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while updating the pass template: {str(e)}",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pass template does not exist",
         )
+    # 2. I get the passupdate data
+    pass_update_data = PassUpdate.model_validate(
+        pass_template_data.model_dump(exclude={"pass_fields"})
+    )
+    # 3. Update the PassModel
+    updated_pass = update_pass_service(
+        pass_id=pass_id, pass_data=pass_update_data, session=session
+    )
+
+    # 4. Update the PassFields
+
+    for field_data in pass_template_data.pass_fields:
+        pass_field_data = PassFieldUpdate.model_validate(
+            field_data.model_dump(exclude={"id"})
+        )
+        update_pass_field_service(
+            pass_field_id=field_data.id,
+            pass_field_data=pass_field_data,
+            session=session,
+        )
+
+    fields = read_pass_fields_by_pass_id(pass_id, session)
+
+    return PassTemplateResponse(
+        **updated_pass.model_dump(),
+        pass_fields=[
+            PassFieldResponse.model_validate(field.model_dump()) for field in fields
+        ],
+    )
+
+
+def delete_pass_template_service(
+    pass_id: uuid.UUID, session: SessionDep, owner_id: uuid.UUID
+):
+    # 1. Read the PassModel
+    pass_db = read_pass_service(pass_id=pass_id, session=session)
+    if not pass_db or (pass_db.owner_id != owner_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Pass template does not exist"
+        )
+    # 2. Delete the PassModel
+    delete_pass_service(pass_id=pass_id, session=session)
+    # 3. Delete the related PassFields
+    fields = read_pass_fields_by_pass_id(pass_id, session)
+    for field in fields:
+        if field.id is not None:
+            delete_pass_field_service(pass_field_id=field.id, session=session)
+
+    return {"message": "Pass template deleted successfully"}

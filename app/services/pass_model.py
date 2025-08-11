@@ -68,6 +68,10 @@ def delete_pass_service(pass_id: uuid.UUID, session: SessionDep):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Pass does not exist"
         )
+    if not pass_db.active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Pass is already deleted"
+        )
 
     return delete_pass(pass_db, session)
 
