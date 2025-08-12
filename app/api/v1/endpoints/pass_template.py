@@ -3,12 +3,18 @@ from fastapi import APIRouter, Depends, status
 from app.core.db import SessionDep
 from app.core.security import get_current_user
 from app.models.owner import Owner
-from app.schemas.pass_template import PassTemplate, PassTemplateResponse
+from app.schemas.pass_template import (
+    PassTemplate,
+    PassTemplateResponse,
+    PassTemplateUpdate,
+)
 from app.services.pass_model import list_passes_service
 from app.services.pass_template import (
     create_pass_template_service,
+    delete_pass_template_service,
     list_passes_template_service,
     read_pass_template_service,
+    update_pass_template_service,
 )
 from fastapi import HTTPException
 
@@ -67,5 +73,47 @@ async def read_pass_template_endpoint(
         )
 
     return read_pass_template_service(
+        pass_id=pass_id, session=session, owner_id=current_owner.id
+    )
+
+
+@router.patch(
+    "/pass-template/{pass_id}",
+    response_model=PassTemplateResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def update_pass_template_endpoint(
+    pass_id: uuid.UUID,
+    pass_template_data: PassTemplateUpdate,
+    session: SessionDep,
+    current_owner: Owner = Depends(get_current_user),
+):
+    if current_owner.id is None:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Owner ID is missing or unauthorized.",
+        )
+    return update_pass_template_service(
+        pass_id=pass_id,
+        pass_template_data=pass_template_data,
+        session=session,
+        owner_id=current_owner.id,
+    )
+
+
+@router.delete("/pass-template/{pass_id}")
+async def delete_pass_endpoint(
+    pass_id: uuid.UUID,
+    session: SessionDep,
+    current_owner: Owner = Depends(get_current_user),
+):
+    if current_owner.id is None:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Owner ID is missing or unauthorized.",
+        )
+    return delete_pass_template_service(
         pass_id=pass_id, session=session, owner_id=current_owner.id
     )
