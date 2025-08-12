@@ -1,16 +1,10 @@
 import os
 from sqlmodel import Session, create_engine, SQLModel
-from typing import Annotated
-from fastapi import Depends, FastAPI
+from typing import Annotated, Generator
+from fastapi import Depends, FastAPI, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
-# sqlite_name = "db.sqlite3"
-# sqlite_url = f"sqlite:///{sqlite_name}"
-
-# engine = create_engine(sqlite_url)
-# PostgreSQL connection string
-# Load environment variables from .env
 load_dotenv()
 
 POSTGRES_USER = os.getenv("POSTGRES_USER")
@@ -30,11 +24,24 @@ async def create_all_tables(app: FastAPI):
     yield
 
 
-def get_session():
-    with Session(engine) as session:
+def get_session() -> Generator[Session, None, None]:
+    with Session(engine, expire_on_commit=False) as session:
         yield session
 
 
-SessionDep = Annotated[
-    Session, Depends(get_session)
-]  # This is a type hint that indicates that the function requires a Session object as a dependency.
+def transactional_session(
+    session: Session = Depends(get_session),
+) -> Generator[Session, None, None]:
+    try:
+        yield session
+        session.commit()
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception:
+        session.rollback()
+        raise
+
+
+# Use this in endpoints to get automatic commit/rollback
+SessionDep = Annotated[Session, Depends(transactional_session)]
