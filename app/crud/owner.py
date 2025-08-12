@@ -8,8 +8,7 @@ import uuid
 
 def create_owner(owner_db: Owner, session: SessionDep):
     session.add(owner_db)
-    session.commit()
-    session.refresh(owner_db)
+    session.flush()
     return owner_db
 
 
@@ -31,8 +30,8 @@ def read_owner(owner_id: uuid.UUID, session: SessionDep):
 def delete_owner(owner: Owner, session: SessionDep):
     owner.active = False  # Mark the owner as deleted
     session.add(owner)
-    session.commit()
-    session.refresh(owner)
+    session.flush()
+
     return {"message": "Owner deleted successfully"}
 
 
@@ -42,6 +41,6 @@ def update_owner(owner: Owner, owner_data: OwnerUpdate, session: SessionDep):
     )  # exclude_unset=True option is used to exclude unset fields from the dictionary
     owner.sqlmodel_update(owner_data_dict)
     session.add(owner)
-    session.commit()
-    session.refresh(owner)
+    session.flush()
+
     return owner

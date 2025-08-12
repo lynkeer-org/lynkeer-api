@@ -16,11 +16,6 @@ import uuid
 router = APIRouter()
 
 
-@router.get("/passes", response_model=list[PassModel])
-async def list_passes_endpoint(session: SessionDep):
-    return list_passes_service(session)
-
-
 @router.get("/passes/{pass_id}", response_model=PassModel)
 async def read_pass_endpoint(pass_id: uuid.UUID, session: SessionDep):
     return read_pass_service(session=session, pass_id=pass_id)
