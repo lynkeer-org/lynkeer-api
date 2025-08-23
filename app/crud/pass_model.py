@@ -20,7 +20,10 @@ def create_pass(pass_model_db: PassModel, session: SessionDep):
         if "uq_active_title_owner_type" in str(e.orig):
             raise HTTPException(
                 status_code=400,
-                detail="An active pass with this title, owner, and type already exists.",
+                detail={
+                    "message": "An active pass with this title, owner, and type already exists.",
+                    "error_code": "title_alredy_exists",
+                },                
             )
         raise
     return pass_model_db
@@ -64,7 +67,10 @@ def update_pass(pass_model: PassModel, pass_data: PassUpdate, session: SessionDe
         if "uq_active_title_owner_type" in str(e.orig):
             raise HTTPException(
                 status_code=400,
-                detail="An active pass with this title, owner, and type already exists.",
+                detail={
+                    "message": "An active pass with this title, owner, and type already exists.",
+                    "error_code": "title_alredy_exists",
+                },
             )
         raise
     return pass_model
