@@ -3,6 +3,7 @@ from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 from app.core.db import SessionDep
 import uuid
+from sqlalchemy.exc import IntegrityError
 
 from app.crud.pass_field import read_pass_fields_by_pass_id
 from app.models.pass_model import PassModel
@@ -13,8 +14,18 @@ from app.schemas.pass_template import PassTemplateResponse
 
 def create_pass(pass_model_db: PassModel, session: SessionDep):
     session.add(pass_model_db)
-    session.flush()
-
+    try:
+        session.flush()
+    except IntegrityError as e:
+        if "uq_active_title_owner_type" in str(e.orig):
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": "An active pass with this title, owner, and type already exists.",
+                    "error_code": "title_alredy_exists",
+                },                
+            )
+        raise
     return pass_model_db
 
 
@@ -47,11 +58,19 @@ def delete_pass(pass_model: PassModel, session: SessionDep):
 
 
 def update_pass(pass_model: PassModel, pass_data: PassUpdate, session: SessionDep):
-    pass_data_dict = pass_data.model_dump(
-        exclude_unset=True
-    )  # exclude_unset=True option is used to exclude unset fields from the dictionary
+    pass_data_dict = pass_data.model_dump(exclude_unset=True)
     pass_model.sqlmodel_update(pass_data_dict)
     session.add(pass_model)
-    session.flush()
-
+    try:
+        session.flush()
+    except IntegrityError as e:
+        if "uq_active_title_owner_type" in str(e.orig):
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": "An active pass with this title, owner, and type already exists.",
+                    "error_code": "title_alredy_exists",
+                },
+            )
+        raise
     return pass_model
