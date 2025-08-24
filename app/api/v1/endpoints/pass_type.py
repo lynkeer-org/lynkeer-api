@@ -15,11 +15,7 @@ import uuid
 router = APIRouter()
 
 
-@router.post(
-    "/types-passes",
-    response_model=PassType,
-    status_code=status.HTTP_201_CREATED,
-)
+
 async def create_pass_type(pass_type_data: PassTypeCreate, session: SessionDep):
     return create_pass_type_service(pass_type_data=pass_type_data, session=session)
 
@@ -34,11 +30,7 @@ async def read_pass_type_endpoint(pass_type_id: uuid.UUID, session: SessionDep):
     return read_pass_type_service(session=session, pass_type_id=pass_type_id)
 
 
-@router.patch(
-    "/types-passes/{pass_type_id}",
-    response_model=PassType,
-    status_code=status.HTTP_201_CREATED,
-)
+
 async def update_pass_type_endpoint(
     pass_type_id: uuid.UUID, pass_type_data: PassTypeUpdate, session: SessionDep
 ):
@@ -47,8 +39,6 @@ async def update_pass_type_endpoint(
     )
 
 
-@router.delete(
-    "/types-passes/{pass_type_id}",
-)
+
 async def delete_pass_type_endpoint(pass_type_id: uuid.UUID, session: SessionDep):
     return delete_pass_type_service(session=session, pass_type_id=pass_type_id)
