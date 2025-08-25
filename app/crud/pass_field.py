@@ -15,12 +15,13 @@ def create_pass_field(pass_field_db: PassField, session: SessionDep):
 
 
 def list_pass_fields(session: SessionDep):
-    return session.exec(select(PassField)).all()
+    query = select(PassField).where(PassField.active == True)
+    return session.exec(query).all()
 
 
 def read_pass_field(pass_field_id: uuid.UUID, session: SessionDep):
     pass_field_db = session.get(PassField, pass_field_id)
-    if not pass_field_db:
+    if not pass_field_db or not pass_field_db.active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Pass field does not exist"
         )
@@ -29,7 +30,10 @@ def read_pass_field(pass_field_id: uuid.UUID, session: SessionDep):
 
 def read_pass_fields_by_pass_id(pass_id: uuid.UUID, session: SessionDep):
     pass_fields = session.exec(
-        select(PassField).where(PassField.pass_id == pass_id)
+        select(PassField).where(
+            PassField.pass_id == pass_id,
+            PassField.active == True
+        )
     ).all()
     if not pass_fields:
         raise HTTPException(

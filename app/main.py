@@ -27,12 +27,7 @@ app.include_router(
     prefix="/api/v1",
     tags=["Authentication"],
 )
-app.include_router(
-    pass_model.router,
-    prefix="/api/v1",
-    tags=["Passes"],
-    # dependencies=[Depends(get_current_user)],
-)
+
 app.include_router(
     pass_type.router,
     prefix="/api/v1",
