@@ -1,17 +1,23 @@
+import os
+from dotenv import load_dotenv
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import StaticPool, create_engine
+from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session
 from app.core.db import get_session
 from app.main import app
 
-sqlite_name = "db.sqlite3"
-sqlite_url = f"sqlite:///{sqlite_name}"
+load_dotenv()
 
-engine = create_engine(
-    sqlite_url, connect_args={"check_same_thread": False}, poolclass=StaticPool
-)
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+POSTGRES_DB_TEST = os.getenv("POSTGRES_DB_TEST")
 
+database_url = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB_TEST}"
+
+engine = create_engine(database_url, echo=True)
 
 @pytest.fixture(name="session")
 def session_fixture():

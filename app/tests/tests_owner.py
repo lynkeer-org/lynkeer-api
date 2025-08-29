@@ -3,7 +3,7 @@ from fastapi import status
 
 def test_create_owner(client):
     response = client.post(
-        "/api/v1/auth/signup",
+        "/api/v1/sign-up",
         json={
             "first_name": "Andres",
             "last_name": "Gonzalez",
