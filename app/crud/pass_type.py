@@ -16,17 +16,16 @@ def create_pass_type(pass_type_db: PassType, session: SessionDep):
 
 def read_pass_type(pass_type_id: uuid.UUID, session: SessionDep):
     pass_type_db = session.get(PassType, pass_type_id)
-    if not pass_type_db:
+    if not pass_type_db or not pass_type_db.active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="the pass type does not exist"
         )
-    # This function retrieves a customer from the database using the provided customer_id.
     return pass_type_db
 
 
 def list_pass_types(session: SessionDep):
-    # This query selects all customers from the database and returns them as a list.
-    return session.exec(select(PassType)).all()
+    query = select(PassType).where(PassType.active == True)
+    return session.exec(query).all()
 
 
 def update_pass_type(
