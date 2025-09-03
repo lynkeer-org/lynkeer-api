@@ -30,8 +30,6 @@ def create_pass(pass_model_db: PassModel, session: SessionDep):
 
 
 def list_passes(session: SessionDep, owner_id: uuid.UUID):
-    # Get all passes and include their fields
-
     query = select(PassModel).where(
         PassModel.owner_id == owner_id, PassModel.active == True
     )
@@ -41,11 +39,10 @@ def list_passes(session: SessionDep, owner_id: uuid.UUID):
 
 def read_pass(pass_id: uuid.UUID, session: SessionDep):
     pass_db = session.get(PassModel, pass_id)
-    if not pass_db:
+    if not pass_db or not pass_db.active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Pass does not exist"
         )
-    # This function retrieves a customer from the database using the provided customer_id.
     return pass_db
 
 

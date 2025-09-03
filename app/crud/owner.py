@@ -13,17 +13,16 @@ def create_owner(owner_db: Owner, session: SessionDep):
 
 
 def list_owners(session: SessionDep):
-    # This query selects all customers from the database and returns them as a list.
-    return session.exec(select(Owner)).all()
+    query = select(Owner).where(Owner.active == True)
+    return session.exec(query).all()
 
 
 def read_owner(owner_id: uuid.UUID, session: SessionDep):
     owner_db = session.get(Owner, owner_id)
-    if not owner_db:
+    if not owner_db or not owner_db.active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Owner does not exist"
         )
-    # This function retrieves a customer from the database using the provided customer_id.
     return owner_db
 
 
