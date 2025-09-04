@@ -1,8 +1,8 @@
 from fastapi import status
 
-
-def test_create_owner(client):
-    response = client.post(
+def get_auth_headers(client):
+    # Create owner
+    client.post(
         "/api/v1/sign-up",
         json={
             "first_name": "Andres",
@@ -12,11 +12,7 @@ def test_create_owner(client):
             "password": "securepassword",
         },
     )
-    assert response.status_code == status.HTTP_201_CREATED
-
-
-def test_login_owner(client):
-    test_create_owner(client)
+    # Login owner
     response = client.post(
         "/api/v1/sign-in",
         json={
@@ -24,7 +20,18 @@ def test_login_owner(client):
             "password": "securepassword",
         },
     )
-    assert response.status_code == status.HTTP_200_OK
     token = response.json().get("token")
     assert token is not None
-    return token
+    return {"Authorization": f"Bearer {token}"}
+
+def test_create_pass_type(client):
+    headers = get_auth_headers(client)
+    response = client.post(
+        "/api/v1/types-passes",
+        json={"type": "TestType"},
+        headers=headers
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    data = response.json()
+    assert "id" in data
+    assert data["type"] == "TestType"
