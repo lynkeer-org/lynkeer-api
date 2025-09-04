@@ -15,8 +15,12 @@ import uuid
 router = APIRouter()
 
 
-
-async def create_pass_type(pass_type_data: PassTypeCreate, session: SessionDep):
+@router.post(
+    "/types-passes",
+    response_model=PassType,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_pass_type_endpoint(pass_type_data: PassTypeCreate, session: SessionDep):
     return create_pass_type_service(pass_type_data=pass_type_data, session=session)
 
 
