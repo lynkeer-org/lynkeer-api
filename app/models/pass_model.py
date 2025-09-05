@@ -52,4 +52,5 @@ class PassModel(PassBase, table=True):
     pass_type_id: uuid.UUID = Field(foreign_key="passtype.id", nullable=False)
     pass_type: "PassType" = Relationship(back_populates="passes")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     active: bool | None = Field(default=True, nullable=False)

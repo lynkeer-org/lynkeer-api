@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from app.core.db import SessionDep
 import uuid
 from sqlalchemy.exc import IntegrityError
-
+from datetime import datetime, timezone
 from app.crud.pass_field import read_pass_fields_by_pass_id
 from app.models.pass_model import PassModel
 from app.schemas.pass_model import PassUpdate
@@ -57,6 +57,7 @@ def delete_pass(pass_model: PassModel, session: SessionDep):
 def update_pass(pass_model: PassModel, pass_data: PassUpdate, session: SessionDep):
     pass_data_dict = pass_data.model_dump(exclude_unset=True)
     pass_model.sqlmodel_update(pass_data_dict)
+    pass_model.updated_at = datetime.now(timezone.utc)  # <-- Add this line
     session.add(pass_model)
     try:
         session.flush()
