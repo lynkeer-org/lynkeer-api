@@ -57,7 +57,7 @@ def delete_pass(pass_model: PassModel, session: SessionDep):
 def update_pass(pass_model: PassModel, pass_data: PassUpdate, session: SessionDep):
     pass_data_dict = pass_data.model_dump(exclude_unset=True)
     pass_model.sqlmodel_update(pass_data_dict)
-    pass_model.updated_at = datetime.now(timezone.utc)  # <-- Add this line
+    pass_model.updated_at = datetime.now(timezone.utc)  
     session.add(pass_model)
     try:
         session.flush()
