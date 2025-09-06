@@ -117,3 +117,4 @@ async def delete_pass_endpoint(
     return delete_pass_template_service(
         pass_id=pass_id, session=session, owner_id=current_owner.id
     )
+
