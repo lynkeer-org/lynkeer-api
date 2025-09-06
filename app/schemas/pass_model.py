@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+from datetime import datetime
 from sqlmodel import Field
 import uuid
 
@@ -16,6 +16,9 @@ class PassModelResponse(BaseModel):
     background_color: str
     google_class_id: str
     apple_pass_type_identifier: str
+    created_at: datetime
+    updated_at: datetime | None = None
+    
 
 
 class PassCreate(PassBase):
