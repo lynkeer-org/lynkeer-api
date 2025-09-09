@@ -3,7 +3,7 @@ from sqlmodel import SQLModel, Field, Session, select, Relationship
 from datetime import datetime, timezone
 from app.core.db import engine
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from app.models.pass_model import PassModel
@@ -46,4 +46,7 @@ class Owner(OwnerBase, table=True):
     password_hash: str = Field(default=None)
     passes: list["PassModel"] = Relationship(back_populates="owner")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = Field(
+    default_factory=lambda: datetime.now(timezone.utc),
+    nullable=True)
     active: bool = Field(default=True)
