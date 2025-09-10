@@ -24,4 +24,5 @@ class PassFieldResponse(BaseModel):
     value: str
     field_type: str  # e.g., "secondary_field", "back_field", etc.
     created_at: datetime
+    updated_at: datetime | None = None
     active: bool
