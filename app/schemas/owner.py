@@ -11,6 +11,7 @@ class OwnerResponse(BaseModel):
     email: EmailStr
     phone: str
     created_at: datetime
+    updated_at: datetime | None = None
     active: bool
 
 
