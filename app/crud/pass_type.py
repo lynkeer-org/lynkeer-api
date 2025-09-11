@@ -3,7 +3,7 @@ from sqlmodel import select
 from app.core.db import SessionDep
 from app.models.pass_type import PassType
 import uuid
-
+from datetime import datetime, timezone
 from app.schemas.pass_type import PassTypeUpdate
 
 
@@ -35,6 +35,7 @@ def update_pass_type(
         exclude_unset=True
     )  # exclude_unset=True option is used to exclude unset fields from the dictionary
     pass_type.sqlmodel_update(pass_type_data_dict)
+    pass_type.updated_at = datetime.now(timezone.utc)
     session.add(pass_type)
     session.flush()
 
