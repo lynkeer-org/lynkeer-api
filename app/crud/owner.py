@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from sqlmodel import select
 from app.models.owner import Owner
 from app.schemas.owner import OwnerUpdate
@@ -39,6 +40,7 @@ def update_owner(owner: Owner, owner_data: OwnerUpdate, session: SessionDep):
         exclude_unset=True
     )  # exclude_unset=True option is used to exclude unset fields from the dictionary
     owner.sqlmodel_update(owner_data_dict)
+    owner.updated_at = datetime.now(timezone.utc)
     session.add(owner)
     session.flush()
 

@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import HTTPException, status
 from sqlmodel import select
 from app.core.db import SessionDep
@@ -50,6 +51,7 @@ def update_pass_field(
         exclude_unset=True
     )  # exclude_unset=True option is used to exclude unset fields from the dictionary
     pass_field.sqlmodel_update(pass_field_data_dict)
+    pass_field.updated_at = datetime.now(timezone.utc)
     session.add(pass_field)
     session.flush()
 
