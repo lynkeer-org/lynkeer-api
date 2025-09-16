@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-from fastapi import HTTPException, status, Depends
+from fastapi import Header, HTTPException, status, Depends
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel, OAuthFlowPassword
 from fastapi.security import OAuth2, OAuth2PasswordBearer
 from app.core.config import settings
@@ -9,6 +9,7 @@ from datetime import timezone
 from app.core.db import SessionDep
 
 from app.crud.owner import read_owner
+from app.models.owner import Owner
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/sign-in")
@@ -17,6 +18,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/sign-in")
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+
+API_KEY = settings.API_KEY
 
 
 class OAuth2PasswordBearerWithBearerOnly(OAuth2):
@@ -69,3 +72,29 @@ def get_current_user(session: SessionDep, token: str = Depends(oauth2_scheme)):
 
     except JWTError:
         raise HTTPException(status_code=401, detail="Token inválido")
+
+
+def get_current_user_or_apikey(
+    session: SessionDep = Depends(),
+    authorization: str = Header(None)
+) -> Owner | None:
+    if not authorization:
+        raise HTTPException(status_code=401, detail="No authorization header provided")
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() == "bearer":
+        # Try JWT
+        try:
+            payload = decode_access_token(token)
+            user_id = payload.get("sub")
+            if user_id is not None:
+                owner = read_owner(session=session, owner_id=user_id)
+                if owner:
+                    return owner
+        except JWTError:
+            pass
+        # Try API Key as fallback
+        if token == settings.API_KEY:
+            return None  # Or return a special GuestUser object if you want
+        raise HTTPException(status_code=401, detail="Invalid token or API key")
+    else:
+        raise HTTPException(status_code=401, detail="Invalid authorization scheme")

@@ -1,7 +1,7 @@
 import uuid
 from fastapi import APIRouter, Depends, status
 from app.core.db import SessionDep
-from app.core.security import get_current_user
+from app.core.security import get_current_user, get_current_user_or_apikey
 from app.models.owner import Owner
 from app.schemas.pass_template import (
     PassTemplate,
@@ -63,18 +63,16 @@ async def list_passes_template_endpoint(
 async def read_pass_template_endpoint(
     pass_id: uuid.UUID,
     session: SessionDep,
-    current_owner: Owner = Depends(get_current_user),
+    current_owner = Depends(get_current_user_or_apikey)
 ):
-    if current_owner.id is None:
-
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Owner ID is missing or unauthorized.",
-        )
-
-    return read_pass_template_service(
-        pass_id=pass_id, session=session, owner_id=current_owner.id
-    )
+    if current_owner is None:
+        # Guest (API key) access
+        # Limit data or permissions if needed
+        pass_template = get_public_pass_template_service(pass_id, session)
+    else:
+        # Authenticated owner access
+        pass_template = get_owner_pass_template_service(pass_id, session, current_owner.id)
+    return pass_template
 
 
 @router.patch(
