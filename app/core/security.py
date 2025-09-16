@@ -75,7 +75,7 @@ def get_current_user(session: SessionDep, token: str = Depends(oauth2_scheme)):
 
 
 def get_current_user_or_apikey(
-    session: SessionDep = Depends(),
+    session: SessionDep,
     authorization: str = Header(None)
 ) -> Owner | None:
     if not authorization:

@@ -232,4 +232,43 @@ def test_delete_pass(client):
               "pass_fields": []},
         headers=headers,
     )
-    assert patch_resp.status_code == status.HTTP_404_NOT_FOUND       
+    assert patch_resp.status_code == status.HTTP_404_NOT_FOUND
+
+def test_read_pass_template_with_api_key(client):
+    # 1. Create an owner and a pass template as usual
+    headers = get_auth_headers(client)
+    pass_type_id = create_pass_type(client, headers)
+    sample_pass_field = {
+        "key": "field_key",
+        "label": "Field Label",
+        "value": "Field Value",
+        "field_type": "text"
+    }
+    create_resp = client.post(
+        "/api/v1/pass-template",
+        json={
+            "title": "Public Pass",
+            "stamp_goal": 5,
+            "logo_url": "https://example.com/logo.png",
+            "text_color": "#000000",
+            "background_color": "#ffffff",
+            "google_class_id": "test_google_class",
+            "apple_pass_type_identifier": "test_apple_id",
+            "pass_type_id": pass_type_id,
+            "pass_fields": [sample_pass_field],
+        },
+        headers=headers,
+    )
+    assert create_resp.status_code == status.HTTP_201_CREATED
+    pass_id = create_resp.json()["id"]
+
+    # 2. Read with API key (simulate customer, not logged in)
+    api_key = os.environ["API_KEY"]
+    api_key_headers = {"Authorization": f"Bearer {api_key}"}
+    read_resp = client.get(f"/api/v1/pass-template/{pass_id}", headers=api_key_headers)
+    assert read_resp.status_code == 200
+    data = read_resp.json()
+    assert data["id"] == pass_id
+    assert data["title"] == "Public Pass"
+    assert "pass_fields" in data
+    assert data["pass_fields"][0]["key"] == "field_key"

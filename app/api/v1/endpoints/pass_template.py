@@ -65,14 +65,8 @@ async def read_pass_template_endpoint(
     session: SessionDep,
     current_owner = Depends(get_current_user_or_apikey)
 ):
-    if current_owner is None:
-        # Guest (API key) access
-        # Limit data or permissions if needed
-        pass_template = get_public_pass_template_service(pass_id, session)
-    else:
-        # Authenticated owner access
-        pass_template = get_owner_pass_template_service(pass_id, session, current_owner.id)
-    return pass_template
+    owner_id = current_owner.id if current_owner is not None else None
+    return read_pass_template_service(pass_id, session, owner_id)
 
 
 @router.patch(

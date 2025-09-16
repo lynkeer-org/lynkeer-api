@@ -75,15 +75,20 @@ def list_passes_template_service(session: SessionDep, owner_id: uuid.UUID):
 
 
 def read_pass_template_service(
-    pass_id: uuid.UUID, session: SessionDep, owner_id: uuid.UUID
+    pass_id: uuid.UUID, session: SessionDep, owner_id: uuid.UUID | None = None
 ):
     # 1. Read the PassModel
     pass_model = read_pass_service(pass_id=pass_id, session=session)
-    if not pass_model or (pass_model.owner_id != owner_id):
+    if not pass_model:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Pass template does not exist"
         )
-    # 2. Read the related PassFields
+    # 2. If owner_id is provided, check ownership
+    if owner_id is not None and pass_model.owner_id != owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Pass template does not exist"
+        )
+    # 3. Read the related PassFields
     if pass_model.id is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Pass ID is missing"
@@ -163,27 +168,3 @@ def delete_pass_template_service(
     return {"message": "Pass template deleted successfully"}
 
 
-def read_pass_template_service(pass_id: str, session: SessionDep, current_owner):
-    pass_template = read_pass(session, pass_id)
-    if not pass_template or not pass_template.active:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Pass template not found.",
-        )
-    # If owner is required, check ownership
-    if current_owner is not None and pass_template.owner_id != current_owner.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this pass template.",
-        )
-    return pass_template
-
-
-def get_public_pass_template_service(pass_id: str, session: SessionDep):
-    pass_template = read_pass(session, pass_id)
-    if not pass_template or not pass_template.active:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Pass template not found.",
-        )
-    return pass_template
