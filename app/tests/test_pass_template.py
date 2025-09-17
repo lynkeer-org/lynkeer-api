@@ -236,7 +236,7 @@ def test_delete_pass(client):
     assert patch_resp.status_code == status.HTTP_404_NOT_FOUND
 
 def test_read_pass_template_with_api_key(client):
-    # 1. Create an owner and a pass template as usual
+    # Create as owner
     headers = get_auth_headers(client)
     pass_type_id = create_pass_type(client, headers)
     sample_pass_field = {
@@ -263,9 +263,9 @@ def test_read_pass_template_with_api_key(client):
     assert create_resp.status_code == status.HTTP_201_CREATED
     pass_id = create_resp.json()["id"]
 
-    # 2. Read with API key (simulate customer, not logged in)
+    # Read as customer (API key)
     api_key = os.environ["API_KEY"]
-    api_key_headers = {"Authorization": f"Bearer {api_key}"}
+    api_key_headers = {"Authorization": f"API-KEY {api_key}"}
     read_resp = client.get(f"/api/v1/pass-template/{pass_id}", headers=api_key_headers)
     assert read_resp.status_code == 200
     data = read_resp.json()
@@ -273,3 +273,12 @@ def test_read_pass_template_with_api_key(client):
     assert data["title"] == "Public Pass"
     assert "pass_fields" in data
     assert data["pass_fields"][0]["key"] == "field_key"
+
+    # Read as owner (JWT)
+    owner_resp = client.get(f"/api/v1/pass-template/{pass_id}", headers=headers)
+    assert owner_resp.status_code == 200
+    owner_data = owner_resp.json()
+    assert owner_data["id"] == pass_id
+    assert owner_data["title"] == "Public Pass"
+    assert "pass_fields" in owner_data
+    assert owner_data["pass_fields"][0]["key"] == "field_key"

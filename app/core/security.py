@@ -81,14 +81,12 @@ def get_current_user_or_apikey(
     if not authorization:
         raise HTTPException(status_code=401, detail="No authorization header provided")
     scheme, _, token = authorization.partition(" ")
-    if scheme.lower() == "bearer":
-        # Try JWT first, using the existing logic
-        try:
-            return get_current_user(session, token)
-        except HTTPException:
-            # If JWT fails, try API key
-            if token == settings.API_KEY:
-                return None  # Guest access
-            raise HTTPException(status_code=401, detail="Invalid token or API key")
+    scheme = scheme.lower()
+    if scheme == "bearer":
+        return get_current_user(session, token)
+    elif scheme == "api-key":
+        if token == settings.API_KEY:
+            return None  # Guest access
+        raise HTTPException(status_code=401, detail="Invalid API key")
     else:
         raise HTTPException(status_code=401, detail="Invalid authorization scheme")
