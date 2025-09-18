@@ -39,7 +39,6 @@ app.include_router(
     pass_template.router,
     prefix="/api/v1",
     tags=["Pass-templates"],
-    dependencies=[Depends(get_current_user)],
 )
 
 
