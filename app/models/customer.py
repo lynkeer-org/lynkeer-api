@@ -27,5 +27,5 @@ class CustomerBase(SQLModel):
 class Customer(CustomerBase, table=True):
     id: uuid.UUID | None = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: Optional[datetime] = Field(default=None)
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     active: bool = Field(default=True)
