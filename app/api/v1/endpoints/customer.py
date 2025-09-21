@@ -1,6 +1,5 @@
 from fastapi import APIRouter, status, Depends
-from app.schemas.customer import CustomerCreate
-from app.models.customer import Customer
+from app.schemas.customer import CustomerCreate, CustomerResponse
 from app.core.db import SessionDep
 from app.services.customer import create_customer_service
 from app.core.security import get_current_user_or_apikey
@@ -9,7 +8,7 @@ router = APIRouter()
 
 @router.post(
     "/customers",
-    response_model=Customer,
+    response_model=CustomerResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_customer_endpoint(
@@ -17,4 +16,4 @@ async def create_customer_endpoint(
     session: SessionDep,
     current_user = Depends(get_current_user_or_apikey)
 ):
-    return create_customer_service(customer_data, session)
+    return create_customer_service(session=session, customer_data=customer_data)
