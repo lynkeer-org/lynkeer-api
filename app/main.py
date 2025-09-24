@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI
 
 from app.api.v1.endpoints import (
     auth,
+    customer,
     owner,
     pass_model,
     pass_template,
@@ -40,6 +41,12 @@ app.include_router(
     prefix="/api/v1",
     tags=["Pass-templates"],
 )
+
+app.include_router(
+    customer.router,
+    prefix="/api/v1",
+    tags=["Customers"],    
+)  # This should work if structure is correct
 
 
 @app.get("/")
