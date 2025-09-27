@@ -51,3 +51,11 @@ def delete_customer_service(customer_id: uuid.UUID, session: SessionDep):
             status_code=status.HTTP_404_NOT_FOUND, detail="Customer does not exist"
         )
     return delete_customer(customer_db, session)
+
+def get_customer_by_email_service(email: str, session: SessionDep):
+    customer = get_customer_by_email(session=session, email=email)
+    if not customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found"
+        )
+    return customer
