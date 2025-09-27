@@ -1,10 +1,14 @@
 from fastapi import APIRouter, status, Depends
 from app.schemas.customer import CustomerCreate, CustomerResponse
 from app.core.db import SessionDep
-from app.services.customer import create_customer_service
+from app.services.customer import (
+    create_customer_service,
+    get_customer_by_email_service,
+)
 from app.core.security import get_current_user_or_apikey
 
 router = APIRouter()
+
 
 @router.post(
     "/customers",
@@ -14,6 +18,19 @@ router = APIRouter()
 async def create_customer_endpoint(
     customer_data: CustomerCreate,
     session: SessionDep,
-    current_user = Depends(get_current_user_or_apikey)
+    current_user=Depends(get_current_user_or_apikey),
 ):
     return create_customer_service(session=session, customer_data=customer_data)
+
+
+@router.get(
+    "/customers/by-email/{email}",
+    response_model=CustomerResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_customer_by_email_endpoint(
+    email: str,
+    session: SessionDep,
+    current_user=Depends(get_current_user_or_apikey),
+):
+    return get_customer_by_email_service(email=email, session=session)
