@@ -11,8 +11,8 @@ def create_customer(customer_db: Customer, session: SessionDep):
     return customer_db
 
 def get_customer_by_email(session: SessionDep, email: str):
-    statement = select(Customer).where(Customer.email == email)
-    return session.exec(statement).first()
+    query = select(Customer).where(Customer.email == email)
+    return session.exec(query).first()
 
 def list_customers(session: SessionDep):
     query = select(Customer).where(Customer.active == True)

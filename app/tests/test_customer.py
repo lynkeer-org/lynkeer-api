@@ -67,3 +67,31 @@ def test_create_customer_with_apikey(client):
     assert data["email"] == "bob@example.com"
     assert data["first_name"] == "Bob"
     assert data["active"] is True
+
+def test_get_customer_by_email(client):
+    # Simulate owner authentication
+    headers = get_auth_headers(client)
+
+    # Create a customer
+    customer_data = {
+        "first_name": "Alice",
+        "last_name": "Smith",
+        "email": "alice@example.com",
+        "phone": "12345678",
+        "birth_date": "1990-01-01"
+    }
+    client.post(
+        "/api/v1/customers",
+        json=customer_data,
+        headers=headers
+    )
+
+    # Retrieve the customer by email using a path parameter
+    response = client.get(
+        f"/api/v1/customers/by-email/{customer_data['email']}",
+        headers=headers
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    customer = response.json()
+    assert customer["email"] == customer_data["email"]
