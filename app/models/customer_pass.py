@@ -15,22 +15,24 @@ class RegistrationMethodEnum(str, Enum):
     MANUAL = "manual"
     LINK = "link"
 
-class CustomerPass(SQLModel, table=True):
+class CustomerPassBase(SQLModel):
+    device: DeviceEnum = Field(nullable=False)
+    registration_method: RegistrationMethodEnum = Field(nullable=False)
+    apple_serial_number: str | None = Field(default=None)
+    apple_authentication_token: str | None = Field(default=None)
+    apple_device_library_id: str | None = Field(default=None)
+    apple_push_token: str | None = Field(default=None)
+    google_id_class: str | None = Field(default=None)
+    google_id_object: str | None = Field(default=None)
+    google_wallet_url: str | None = Field(default=None)
+
+class CustomerPass(CustomerPassBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     customer_id: uuid.UUID = Field(foreign_key="customer.id")
     pass_id: uuid.UUID = Field(foreign_key="passmodel.id")
-    device: DeviceEnum = Field(nullable=False)  # ENUM: ios, android, web
-    registration_method: RegistrationMethodEnum = Field(nullable=False)  # ENUM: qr, manual, link
-    apple_serial_number: str = Field(default=None)
-    apple_authentication_token: str = Field(default=None)
-    apple_device_library_id: str = Field(default=None)
-    apple_push_token: str = Field(default=None)
-    google_id_class: str = Field(default=None)
-    google_id_object: str = Field(default=None)
-    google_wallet_url: str = Field(default=None)
+    active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    active: bool = Field(default=True)
 
     __table_args__ = (
         UniqueConstraint("customer_id", "pass_id", name="uq_customer_pass"),
