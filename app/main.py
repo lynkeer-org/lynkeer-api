@@ -52,7 +52,7 @@ app.include_router(
 app.include_router(
     customer_pass.router,
     prefix="/api/v1",
-    tags=["Customer-Passes"],
+    tags=["Customer-passes"],
 )
 
 

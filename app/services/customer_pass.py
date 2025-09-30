@@ -10,9 +10,28 @@ from app.schemas.customer_pass import CustomerPassCreate, CustomerPassUpdate
 from app.core.db import SessionDep
 from fastapi import HTTPException, status
 import uuid
+from app.crud.customer import read_customer
+from app.crud.pass_model import read_pass
 
 def create_customer_pass_service(customer_pass_data: CustomerPassCreate, session: SessionDep):
     customer_pass_dict = customer_pass_data.model_dump()
+
+    # Validate customer_id
+    customer_id = customer_pass_dict.get("customer_id")
+    customer = read_customer(customer_id=customer_id, session=session)
+    if not customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Customer does not exist"
+        )
+
+    # Validate pass_id
+    pass_id = customer_pass_dict.get("pass_id")
+    pass_model = read_pass(pass_id=pass_id, session=session)
+    if not pass_model:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Pass does not exist"
+        )
+
     customer_pass = CustomerPass.model_validate(customer_pass_dict)
     return create_customer_pass(customer_pass, session)
 

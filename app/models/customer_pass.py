@@ -25,11 +25,11 @@ class CustomerPassBase(SQLModel):
     google_id_class: str | None = Field(default=None)
     google_id_object: str | None = Field(default=None)
     google_wallet_url: str | None = Field(default=None)
+    customer_id: uuid.UUID = Field(foreign_key="customer.id", nullable=False)
+    pass_id: uuid.UUID = Field(foreign_key="passmodel.id", nullable=False)
 
 class CustomerPass(CustomerPassBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
-    customer_id: uuid.UUID = Field(foreign_key="customer.id")
-    pass_id: uuid.UUID = Field(foreign_key="passmodel.id")
     active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
