@@ -7,6 +7,7 @@ from app.api.v1.endpoints import (
     pass_model,
     pass_template,
     pass_type,
+    customer_pass,
 )  # This should work if structure is correct
 
 from app.core.db import create_all_tables
@@ -47,6 +48,12 @@ app.include_router(
     prefix="/api/v1",
     tags=["Customers"],    
 )  # This should work if structure is correct
+
+app.include_router(
+    customer_pass.router,
+    prefix="/api/v1",
+    tags=["Customer-passes"],
+)
 
 
 @app.get("/")
