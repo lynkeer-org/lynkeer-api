@@ -3,15 +3,19 @@ from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, timezone
 from sqlalchemy import Column, UniqueConstraint, Index, text
 from sqlalchemy.dialects.postgresql import CITEXT
-
+from app.models.customer_pass import CustomerPass
 import uuid
 
 from typing import TYPE_CHECKING
+
+
 
 if TYPE_CHECKING:
     from app.models.owner import Owner
     from app.models.pass_type import PassType
     from app.models.pass_field import PassField
+    from app.models.customer import Customer    
+    
 
 
 class PassBase(SQLModel):
@@ -51,6 +55,7 @@ class PassModel(PassBase, table=True):
     fields: list["PassField"] = Relationship(back_populates="pass_model")
     pass_type_id: uuid.UUID = Field(foreign_key="passtype.id", nullable=False)
     pass_type: "PassType" = Relationship(back_populates="passes")
+    customers: list['Customer']= Relationship(back_populates='passes', link_model=CustomerPass)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     active: bool | None = Field(default=True, nullable=False)
