@@ -18,9 +18,10 @@ router = APIRouter()
 async def create_customer_endpoint(
     customer_data: CustomerCreate,
     session: SessionDep,
-    current_user=Depends(get_current_user_or_apikey),
+    current_owner=Depends(get_current_user_or_apikey),
 ):
-    return create_customer_service(session=session, customer_data=customer_data)
+    owner_id = current_owner.id if current_owner is not None else None
+    return create_customer_service(customer_data=customer_data, session=session, owner_id=owner_id)
 
 
 @router.get(
@@ -31,6 +32,7 @@ async def create_customer_endpoint(
 async def get_customer_by_email_endpoint(
     email: str,
     session: SessionDep,
-    current_user=Depends(get_current_user_or_apikey),
+    current_owner=Depends(get_current_user_or_apikey),
 ):
-    return get_customer_by_email_service(email=email, session=session)
+    owner_id = current_owner.id if current_owner is not None else None
+    return get_customer_by_email_service(email=email, session=session, owner_id=owner_id)

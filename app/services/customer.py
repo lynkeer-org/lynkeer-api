@@ -12,7 +12,7 @@ from app.core.db import SessionDep
 from fastapi import HTTPException, status
 import uuid
 
-def create_customer_service(customer_data: CustomerCreate, session: SessionDep):
+def create_customer_service(customer_data: CustomerCreate, session: SessionDep, owner_id: uuid.UUID | None = None):
     # Check if email already exists
     if get_customer_by_email(session, customer_data.email):
         raise HTTPException(
