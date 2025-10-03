@@ -217,6 +217,74 @@ def test_create_customer_pass_with_api_key(client):
     assert api_key_headers["Authorization"].startswith("API-KEY ")
 
 
+def test_create_customer_pass_forbidden_for_other_owner(client):
+    """Test that Bearer token cannot create customer pass for another owner's pass template"""
+    # Setup: Create first owner and their pass template
+    headers_owner1 = get_auth_headers(client)  # First owner (Andres)
+    create_pass_template(client)
+    
+    # Get the first owner's pass template ID
+    pass_list_resp = client.get("/api/v1/pass-template", headers=headers_owner1)
+    assert pass_list_resp.status_code == status.HTTP_200_OK
+    pass_templates = pass_list_resp.json()
+    assert len(pass_templates) > 0
+    pass_id_owner1 = pass_templates[0]["id"]
+    
+    # Create second owner with different credentials
+    client.post(
+        "/api/v1/sign-up",
+        json={
+            "first_name": "Maria",
+            "last_name": "Rodriguez", 
+            "email": "maria@example.com",
+            "phone": "9876543210",
+            "password": "anotherpassword",
+        },
+    )
+    
+    # Login second owner
+    login_resp = client.post(
+        "/api/v1/sign-in",
+        json={
+            "email": "maria@example.com",
+            "password": "anotherpassword",
+        },
+    )
+    token_owner2 = login_resp.json().get("token")
+    headers_owner2 = {"Authorization": f"Bearer {token_owner2}"}
+    
+    # Create customer with second owner
+    customer_resp = client.post(
+        "/api/v1/customers",
+        json={
+            "first_name": "Test",
+            "last_name": "Customer", 
+            "email": "test@example.com",
+            "phone": "1111111111",
+            "birth_date": "1990-01-01"
+        },
+        headers=headers_owner2,
+    )
+    assert customer_resp.status_code == status.HTTP_201_CREATED
+    customer_id = customer_resp.json()["id"]
+    
+    # Try to create customer pass for first owner's pass template using second owner's Bearer token
+    # This should fail with 403 Forbidden
+    customer_pass_data = {
+        "device": "android",
+        "registration_method": "qr",
+        "customer_id": customer_id,
+        "pass_id": pass_id_owner1,  # First owner's pass template
+    }
+    response = client.post(
+        "/api/v1/customer-passes",
+        json=customer_pass_data,
+        headers=headers_owner2,  # Second owner's Bearer token
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert "You can only create customer passes for your own pass templates" in response.json()["detail"]
+
+
 def test_list_customer_passes(client):
     headers = get_auth_headers(client)
     
@@ -409,6 +477,87 @@ def test_update_customer_pass(client):
     assert updated_pass["google_id_class"] == "updated_google_class"
     assert updated_pass["customer_id"] == customer_id  # Should remain unchanged
     assert updated_pass["pass_id"] == pass_id  # Should remain unchanged
+
+
+def test_update_customer_pass_forbidden_for_other_owner(client):
+    """Test that an owner cannot update customer passes for another owner's pass template"""
+    # Setup: Create first owner and their customer pass
+    headers_owner1 = get_auth_headers(client)  # First owner (Andres)
+    
+    # Create customer with first owner
+    customer_resp = client.post(
+        "/api/v1/customers",
+        json={
+            "first_name": "Test",
+            "last_name": "Customer",
+            "email": "test@example.com", 
+            "phone": "1111111111",
+            "birth_date": "1990-01-01"
+        },
+        headers=headers_owner1,
+    )
+    assert customer_resp.status_code == status.HTTP_201_CREATED
+    customer_id = customer_resp.json()["id"]
+    
+    # Create pass template with first owner
+    create_pass_template(client)
+    pass_list_resp = client.get("/api/v1/pass-template", headers=headers_owner1)
+    assert pass_list_resp.status_code == status.HTTP_200_OK
+    pass_templates = pass_list_resp.json()
+    assert len(pass_templates) > 0
+    pass_id = pass_templates[0]["id"]
+    
+    # Create customer pass with first owner
+    customer_pass_data = {
+        "device": "ios",
+        "registration_method": "qr",
+        "customer_id": customer_id,
+        "pass_id": pass_id,
+    }
+    create_response = client.post(
+        "/api/v1/customer-passes",
+        json=customer_pass_data,
+        headers=headers_owner1,
+    )
+    assert create_response.status_code == status.HTTP_201_CREATED
+    customer_pass_id = create_response.json()["id"]
+    
+    # Create second owner with different credentials
+    client.post(
+        "/api/v1/sign-up",
+        json={
+            "first_name": "Maria",
+            "last_name": "Rodriguez",
+            "email": "maria@example.com", 
+            "phone": "9876543210",
+            "password": "anotherpassword",
+        },
+    )
+    
+    # Login second owner
+    login_resp = client.post(
+        "/api/v1/sign-in",
+        json={
+            "email": "maria@example.com",
+            "password": "anotherpassword",
+        },
+    )
+    token_owner2 = login_resp.json().get("token")
+    headers_owner2 = {"Authorization": f"Bearer {token_owner2}"}
+    
+    # Try to update first owner's customer pass using second owner's Bearer token
+    # This should fail with 403 Forbidden
+    update_data = {
+        "device": "android",
+        "registration_method": "manual",
+    }
+    response = client.patch(
+        f"/api/v1/customer-passes/{customer_pass_id}",
+        json=update_data,
+        headers=headers_owner2,  # Second owner's Bearer token
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert "You can only update customer passes for your own pass templates" in response.json()["detail"]
 
 
 def test_delete_customer_pass(client):

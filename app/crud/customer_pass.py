@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from sqlmodel import select
 from app.models.customer_pass import CustomerPass
+from app.models.pass_model import PassModel
 from app.core.db import SessionDep
 from fastapi import HTTPException, status
 import uuid
@@ -19,8 +20,8 @@ def read_customer_pass(customer_pass_id: uuid.UUID, session: SessionDep):
         )
     return customer_pass_db
 
-def list_customer_passes(session: SessionDep):
-    query = select(CustomerPass)
+def list_customer_passes(session: SessionDep, owner_id: uuid.UUID):
+    query = select(CustomerPass).join(PassModel).where(PassModel.owner_id == owner_id)
     return session.exec(query).all()
 
 def update_customer_pass(customer_pass: CustomerPass, customer_pass_data, session: SessionDep):
