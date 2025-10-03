@@ -84,8 +84,8 @@ async def update_customer_pass_endpoint(
 async def delete_customer_pass_endpoint(
     customer_pass_id: uuid.UUID,
     session: SessionDep,
-    current_user=Depends(get_current_user_or_apikey),
+    current_user=Depends(get_current_user),
 ):
     delete_customer_pass_service(
-        customer_pass_id=customer_pass_id, session=session
+        customer_pass_id=customer_pass_id, session=session, owner_id=current_user.id
     )

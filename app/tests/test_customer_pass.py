@@ -622,6 +622,82 @@ def test_delete_customer_pass(client):
     assert deleted_pass["active"] == False  # Should be marked as inactive
 
 
+def test_delete_customer_pass_forbidden_for_other_owner(client):
+    """Test that an owner cannot delete customer passes for another owner's pass template"""
+    # Setup: Create first owner and their customer pass
+    headers_owner1 = get_auth_headers(client)  # First owner (Andres)
+    
+    # Create customer with first owner
+    customer_resp = client.post(
+        "/api/v1/customers",
+        json={
+            "first_name": "Delete",
+            "last_name": "Test", 
+            "email": "delete@example.com",
+            "phone": "2222222222",
+            "birth_date": "1992-06-15"
+        },
+        headers=headers_owner1,
+    )
+    assert customer_resp.status_code == status.HTTP_201_CREATED
+    customer_id = customer_resp.json()["id"]
+    
+    # Create pass template with first owner
+    create_pass_template(client)
+    pass_list_resp = client.get("/api/v1/pass-template", headers=headers_owner1)
+    assert pass_list_resp.status_code == status.HTTP_200_OK
+    pass_templates = pass_list_resp.json()
+    assert len(pass_templates) > 0
+    pass_id = pass_templates[0]["id"]
+    
+    # Create customer pass with first owner
+    customer_pass_data = {
+        "device": "web",
+        "registration_method": "link",
+        "customer_id": customer_id,
+        "pass_id": pass_id,
+    }
+    create_response = client.post(
+        "/api/v1/customer-passes",
+        json=customer_pass_data,
+        headers=headers_owner1,
+    )
+    assert create_response.status_code == status.HTTP_201_CREATED
+    customer_pass_id = create_response.json()["id"]
+    
+    # Create second owner with different credentials
+    client.post(
+        "/api/v1/sign-up",
+        json={
+            "first_name": "Carlos",
+            "last_name": "Martinez",
+            "email": "carlos@example.com",
+            "phone": "8888888888", 
+            "password": "differentpassword",
+        },
+    )
+    
+    # Login second owner
+    login_resp = client.post(
+        "/api/v1/sign-in",
+        json={
+            "email": "carlos@example.com",
+            "password": "differentpassword",
+        },
+    )
+    token_owner2 = login_resp.json().get("token")
+    headers_owner2 = {"Authorization": f"Bearer {token_owner2}"}
+    
+    # Try to delete first owner's customer pass using second owner's Bearer token
+    # This should fail with 403 Forbidden
+    response = client.delete(
+        f"/api/v1/customer-passes/{customer_pass_id}",
+        headers=headers_owner2,  # Second owner's Bearer token
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert "You can only delete customer passes for your own pass templates" in response.json()["detail"]
+
+
 def test_read_nonexistent_customer_pass(client):
     headers = get_auth_headers(client)
     

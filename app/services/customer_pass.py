@@ -63,7 +63,7 @@ def update_customer_pass_service(
         )
     
     # Owner validation: Ensure the customer pass belongs to owner's pass template
-    from app.crud.pass_model import read_pass
+    
     pass_model = read_pass(customer_pass_db.pass_id, session)
     if pass_model.owner_id != owner_id:
         raise HTTPException(
@@ -73,10 +73,19 @@ def update_customer_pass_service(
     
     return update_customer_pass(customer_pass_db, customer_pass_data, session)
 
-def delete_customer_pass_service(customer_pass_id: uuid.UUID, session: SessionDep):
+def delete_customer_pass_service(customer_pass_id: uuid.UUID, session: SessionDep, owner_id: uuid.UUID):
     customer_pass_db = read_customer_pass(customer_pass_id=customer_pass_id, session=session)
     if not customer_pass_db:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="CustomerPass does not exist"
         )
+    
+    # Owner validation: Ensure the customer pass belongs to owner's pass template
+    pass_model = read_pass(customer_pass_db.pass_id, session)
+    if pass_model.owner_id != owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="You can only delete customer passes for your own pass templates"
+        )
+    
     return delete_customer_pass(customer_pass_db, session)
