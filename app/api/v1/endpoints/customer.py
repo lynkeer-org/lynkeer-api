@@ -5,6 +5,7 @@ from app.services.customer import (
     create_customer_service,
     get_customer_by_email_service,
     update_customer_service,
+    delete_customer_service,
 )
 from app.core.security import get_current_user_or_apikey, get_current_user
 import uuid
@@ -54,6 +55,22 @@ async def update_customer_endpoint(
     return update_customer_service(
         customer_id=customer_id,
         customer_data=customer_data,
+        session=session,
+        owner_id=current_user.id,
+    )
+
+
+@router.delete(
+    "/customers/{customer_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_customer_endpoint(
+    customer_id: uuid.UUID,
+    session: SessionDep,
+    current_user=Depends(get_current_user),
+):
+    delete_customer_service(
+        customer_id=customer_id,
         session=session,
         owner_id=current_user.id,
     )

@@ -373,3 +373,153 @@ def test_update_customer_forbidden_other_owner(client):
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "You can only update customers who have passes from your pass templates" in response.json()["detail"]
+
+
+def test_delete_customer_with_bearer_with_passes(client):
+    """Test successfully deleting customer with Bearer token when customer has passes from that owner"""
+    # Create customer and pass template setup
+    headers = get_auth_headers(client)
+    
+    # Create customer
+    customer_data = {
+        "first_name": "Grace",
+        "last_name": "Taylor", 
+        "email": "grace@example.com",
+        "phone": "66677788",
+        "birth_date": "1990-04-25"
+    }
+    customer_response = client.post(
+        "/api/v1/customers",
+        json=customer_data,
+        headers=headers
+    )
+    assert customer_response.status_code == status.HTTP_201_CREATED
+    customer_id = customer_response.json()["id"]
+
+    # Create pass template
+    pass_template_id = create_pass_template(client, headers)
+
+    # Create customer pass relationship
+    customer_pass_data = {
+        "device": "ios",
+        "registration_method": "qr", 
+        "customer_id": customer_id,
+        "pass_id": pass_template_id,
+    }
+    customer_pass_response = client.post(
+        "/api/v1/customer-passes",
+        json=customer_pass_data,
+        headers=headers
+    )
+    assert customer_pass_response.status_code == status.HTTP_201_CREATED
+
+    # Test: Delete customer with Bearer token (should work - has passes from this owner)
+    response = client.delete(
+        f"/api/v1/customers/{customer_id}",
+        headers=headers
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    # Verify customer was actually deleted by trying to get it by email
+    get_response = client.get(
+        f"/api/v1/customers/by-email/{customer_data['email']}",
+        headers=headers
+    )
+    assert get_response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_delete_customer_forbidden_no_passes(client):
+    """Test deleting customer with Bearer token when customer has no passes from that owner"""
+    # Create customer with Bearer token
+    headers = get_auth_headers(client)
+    customer_data = {
+        "first_name": "Henry",
+        "last_name": "Brown",
+        "email": "henry@example.com", 
+        "phone": "77788899",
+        "birth_date": "1993-06-12"
+    }
+    customer_response = client.post(
+        "/api/v1/customers",
+        json=customer_data,
+        headers=headers
+    )
+    assert customer_response.status_code == status.HTTP_201_CREATED
+    customer_id = customer_response.json()["id"]
+
+    # Test: Delete customer with Bearer token (should fail - no passes from this owner)
+    response = client.delete(
+        f"/api/v1/customers/{customer_id}",
+        headers=headers
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert "You can only delete customers who have passes from your pass templates" in response.json()["detail"]
+
+
+def test_delete_customer_forbidden_other_owner(client):
+    """Test that an owner cannot delete customers that belong to another owner's pass templates"""
+    # Setup: Create first owner and their customer with passes
+    headers_owner1 = get_auth_headers(client)  # First owner (Andres)
+    
+    # Create customer with first owner
+    customer_data = {
+        "first_name": "Iris",
+        "last_name": "Wilson",
+        "email": "iris@example.com",
+        "phone": "88899900", 
+        "birth_date": "1985-09-03"
+    }
+    customer_response = client.post(
+        "/api/v1/customers",
+        json=customer_data,
+        headers=headers_owner1
+    )
+    assert customer_response.status_code == status.HTTP_201_CREATED
+    customer_id = customer_response.json()["id"]
+
+    # Create pass template and customer pass with first owner
+    pass_template_id = create_pass_template(client, headers_owner1)
+    customer_pass_data = {
+        "device": "android",
+        "registration_method": "manual",
+        "customer_id": customer_id,
+        "pass_id": pass_template_id,
+    }
+    customer_pass_response = client.post(
+        "/api/v1/customer-passes",
+        json=customer_pass_data,
+        headers=headers_owner1
+    )
+    assert customer_pass_response.status_code == status.HTTP_201_CREATED
+
+    # Create second owner with different credentials
+    client.post(
+        "/api/v1/sign-up",
+        json={
+            "first_name": "Jack",
+            "last_name": "Davis",
+            "email": "jack@example.com",
+            "phone": "2223334444", 
+            "password": "anothersecurepassword",
+        },
+    )
+    
+    # Login second owner
+    login_resp = client.post(
+        "/api/v1/sign-in", 
+        json={
+            "email": "jack@example.com",
+            "password": "anothersecurepassword",
+        },
+    )
+    token_owner2 = login_resp.json().get("token")
+    headers_owner2 = {"Authorization": f"Bearer {token_owner2}"}
+
+    # Test: Try to delete first owner's customer using second owner's Bearer token
+    # This should fail with 403 Forbidden
+    response = client.delete(
+        f"/api/v1/customers/{customer_id}",
+        headers=headers_owner2  # Second owner's Bearer token
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert "You can only delete customers who have passes from your pass templates" in response.json()["detail"]
