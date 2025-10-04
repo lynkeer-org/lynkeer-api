@@ -203,3 +203,173 @@ def test_get_customer_by_email_with_bearer_with_passes(client):
     assert response.status_code == status.HTTP_200_OK
     response_data = response.json()
     assert response_data["email"] == "charlie@example.com"
+
+def test_update_customer_with_bearer_with_passes(client):
+    """Test successfully updating customer with Bearer token when customer has passes from that owner"""
+    # Create customer and pass template setup
+    headers = get_auth_headers(client)
+    
+    # Create customer
+    customer_data = {
+        "first_name": "David",
+        "last_name": "Wilson", 
+        "email": "david@example.com",
+        "phone": "55566677",
+        "birth_date": "1988-07-20"
+    }
+    customer_response = client.post(
+        "/api/v1/customers",
+        json=customer_data,
+        headers=headers
+    )
+    assert customer_response.status_code == status.HTTP_201_CREATED
+    customer_id = customer_response.json()["id"]
+
+    # Create pass template
+    pass_template_id = create_pass_template(client, headers)
+
+    # Create customer pass relationship
+    customer_pass_data = {
+        "device": "ios",
+        "registration_method": "qr", 
+        "customer_id": customer_id,
+        "pass_id": pass_template_id,
+    }
+    customer_pass_response = client.post(
+        "/api/v1/customer-passes",
+        json=customer_pass_data,
+        headers=headers
+    )
+    assert customer_pass_response.status_code == status.HTTP_201_CREATED
+
+    # Test: Update customer with Bearer token (should work - has passes from this owner)
+    update_data = {
+        "first_name": "David Updated",
+        "last_name": "Wilson Updated",
+        "email": "david.updated@example.com",
+        "phone": "99988877",
+        "birth_date": "1988-07-21"
+    }
+    response = client.patch(
+        f"/api/v1/customers/{customer_id}",
+        json=update_data,
+        headers=headers
+    )
+    assert response.status_code == status.HTTP_200_OK
+    response_data = response.json()
+    assert response_data["first_name"] == "David Updated"
+    assert response_data["last_name"] == "Wilson Updated"
+    assert response_data["email"] == "david.updated@example.com"
+    assert response_data["phone"] == "99988877"
+    assert response_data["id"] == customer_id
+
+def test_update_customer_forbidden_no_passes(client):
+    """Test updating customer with Bearer token when customer has no passes from that owner"""
+    # Create customer with Bearer token
+    headers = get_auth_headers(client)
+    customer_data = {
+        "first_name": "Emma",
+        "last_name": "Davis",
+        "email": "emma@example.com", 
+        "phone": "44455566",
+        "birth_date": "1991-03-10"
+    }
+    customer_response = client.post(
+        "/api/v1/customers",
+        json=customer_data,
+        headers=headers
+    )
+    assert customer_response.status_code == status.HTTP_201_CREATED
+    customer_id = customer_response.json()["id"]
+
+    # Test: Update customer with Bearer token (should fail - no passes from this owner)
+    update_data = {
+        "first_name": "Emma Updated",
+        "last_name": "Davis Updated",
+        "email": "emma.updated@example.com",
+        "phone": "77788899",
+        "birth_date": "1991-03-11"
+    }
+    response = client.patch(
+        f"/api/v1/customers/{customer_id}",
+        json=update_data,
+        headers=headers
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert "You can only update customers who have passes from your pass templates" in response.json()["detail"]
+
+def test_update_customer_forbidden_other_owner(client):
+    """Test that an owner cannot update customers that belong to another owner's pass templates"""
+    # Setup: Create first owner and their customer with passes
+    headers_owner1 = get_auth_headers(client)  # First owner (Andres)
+    
+    # Create customer with first owner
+    customer_data = {
+        "first_name": "Frank",
+        "last_name": "Miller",
+        "email": "frank@example.com",
+        "phone": "11122233", 
+        "birth_date": "1987-11-15"
+    }
+    customer_response = client.post(
+        "/api/v1/customers",
+        json=customer_data,
+        headers=headers_owner1
+    )
+    assert customer_response.status_code == status.HTTP_201_CREATED
+    customer_id = customer_response.json()["id"]
+
+    # Create pass template and customer pass with first owner
+    pass_template_id = create_pass_template(client, headers_owner1)
+    customer_pass_data = {
+        "device": "android",
+        "registration_method": "manual",
+        "customer_id": customer_id,
+        "pass_id": pass_template_id,
+    }
+    customer_pass_response = client.post(
+        "/api/v1/customer-passes",
+        json=customer_pass_data,
+        headers=headers_owner1
+    )
+    assert customer_pass_response.status_code == status.HTTP_201_CREATED
+
+    # Create second owner with different credentials
+    client.post(
+        "/api/v1/sign-up",
+        json={
+            "first_name": "Sarah",
+            "last_name": "Johnson",
+            "email": "sarah@example.com",
+            "phone": "5555444433", 
+            "password": "differentpassword",
+        },
+    )
+    
+    # Login second owner
+    login_resp = client.post(
+        "/api/v1/sign-in", 
+        json={
+            "email": "sarah@example.com",
+            "password": "differentpassword",
+        },
+    )
+    token_owner2 = login_resp.json().get("token")
+    headers_owner2 = {"Authorization": f"Bearer {token_owner2}"}
+
+    # Test: Try to update first owner's customer using second owner's Bearer token
+    # This should fail with 403 Forbidden
+    update_data = {
+        "first_name": "Frank Hacked",
+        "last_name": "Miller Hacked", 
+        "email": "frank.hacked@example.com",
+        "phone": "99999999",
+        "birth_date": "1987-11-16"
+    }
+    response = client.patch(
+        f"/api/v1/customers/{customer_id}",
+        json=update_data,
+        headers=headers_owner2  # Second owner's Bearer token
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert "You can only update customers who have passes from your pass templates" in response.json()["detail"]
