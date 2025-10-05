@@ -67,10 +67,10 @@ async def update_customer_endpoint(
 async def delete_customer_endpoint(
     customer_id: uuid.UUID,
     session: SessionDep,
-    current_user=Depends(get_current_user),
+    current_owner=Depends(get_current_user),
 ):
     delete_customer_service(
         customer_id=customer_id,
         session=session,
-        owner_id=current_user.id,
+        owner_id=current_owner.id,
     )
