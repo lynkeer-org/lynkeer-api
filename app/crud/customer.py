@@ -10,8 +10,28 @@ def create_customer(customer_db: Customer, session: SessionDep):
     session.flush()
     return customer_db
 
-def get_customer_by_email(session: SessionDep, email: str):
-    query = select(Customer).where(Customer.email == email)
+def get_customer_by_email(session: SessionDep, email: str, owner_id: uuid.UUID | None = None):
+    """Get customer by email, optionally filtered by owner"""
+    if owner_id is not None:
+        # Bearer token - filter by owner using relationships
+        from app.models.pass_model import PassModel
+        query = (
+            select(Customer)
+            .join(Customer.passes)
+            .where(
+                Customer.email == email,
+                Customer.active == True,
+                PassModel.owner_id == owner_id,
+                PassModel.active == True
+            )
+        )
+    else:
+        # API key - no owner filtering
+        query = select(Customer).where(
+            Customer.email == email,
+            Customer.active == True
+        )
+    
     return session.exec(query).first()
 
 def list_customers(session: SessionDep):
