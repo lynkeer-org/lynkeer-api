@@ -235,7 +235,7 @@ def test_delete_pass(client):
     )
     assert patch_resp.status_code == status.HTTP_404_NOT_FOUND
 
-def test_read_pass_template_with_api_key(client):
+def test_read_pass_template(client):
     # Create as owner
     headers = get_auth_headers(client)
     pass_type_id = create_pass_type(client, headers)

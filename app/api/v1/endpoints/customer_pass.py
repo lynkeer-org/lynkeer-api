@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, Depends
 from app.schemas.customer_pass import CustomerPassCreate, CustomerPassResponse, CustomerPassUpdate
 from app.core.db import SessionDep
-from app.core.security import get_current_user_or_apikey
+from app.core.security import get_current_user_or_apikey, get_current_user
 from app.services.customer_pass import (
     create_customer_pass_service,
     list_customer_passes_service,
@@ -22,10 +22,13 @@ router = APIRouter()
 async def create_customer_pass_endpoint(
     customer_pass_data: CustomerPassCreate,
     session: SessionDep,
-    current_user=Depends(get_current_user_or_apikey),
+    current_owner=Depends(get_current_user_or_apikey),
 ):
+    # Extract owner_id from current_owner (None if API key authentication)
+    owner_id = current_owner.id if current_owner is not None else None
+    
     return create_customer_pass_service(
-        customer_pass_data=customer_pass_data, session=session
+        customer_pass_data=customer_pass_data, session=session, owner_id=owner_id
     )
 
 
@@ -35,9 +38,9 @@ async def create_customer_pass_endpoint(
     status_code=status.HTTP_200_OK,
 )
 async def list_customer_passes_endpoint(
-    session: SessionDep, current_user=Depends(get_current_user_or_apikey)
+    session: SessionDep, current_user=Depends(get_current_user)
 ):
-    return list_customer_passes_service(session=session)
+    return list_customer_passes_service(session=session, owner_id=current_user.id)
 
 
 @router.get(
@@ -64,12 +67,13 @@ async def update_customer_pass_endpoint(
     customer_pass_id: uuid.UUID,
     customer_pass_data: CustomerPassUpdate,
     session: SessionDep,
-    current_user=Depends(get_current_user_or_apikey),
+    current_user=Depends(get_current_user),
 ):
     return update_customer_pass_service(
         customer_pass_id=customer_pass_id,
         customer_pass_data=customer_pass_data,
         session=session,
+        owner_id=current_user.id,
     )
 
 
@@ -80,8 +84,8 @@ async def update_customer_pass_endpoint(
 async def delete_customer_pass_endpoint(
     customer_pass_id: uuid.UUID,
     session: SessionDep,
-    current_user=Depends(get_current_user_or_apikey),
+    current_user=Depends(get_current_user),
 ):
     delete_customer_pass_service(
-        customer_pass_id=customer_pass_id, session=session
+        customer_pass_id=customer_pass_id, session=session, owner_id=current_user.id
     )
