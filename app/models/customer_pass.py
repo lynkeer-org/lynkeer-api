@@ -4,6 +4,10 @@ from datetime import datetime, timezone
 import uuid
 from enum import Enum
 
+if TYPE_CHECKING:
+    from app.models.stamp import Stamp
+    from app.models.reward import Reward
+
 
 class DeviceEnum(str, Enum):
     IOS = "ios"
@@ -31,6 +35,8 @@ class CustomerPassBase(SQLModel):
 class CustomerPass(CustomerPassBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     active: bool = Field(default=True)
+    stamps: list["Stamp"] = Relationship(back_populates="customer_pass")
+    rewards: list["Reward"] = Relationship(back_populates="customer_pass")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

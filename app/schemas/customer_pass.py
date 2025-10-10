@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from datetime import datetime
 from app.models.customer_pass import CustomerPassBase
+from app.schemas.reward import RewardResponse
+from app.schemas.stamp import StampResponse
 import uuid
 
 class CustomerPassResponse(BaseModel):
@@ -16,6 +18,8 @@ class CustomerPassResponse(BaseModel):
     google_id_class: str | None = None
     google_id_object: str | None = None
     google_wallet_url: str | None = None
+    stamps: list[StampResponse] = []  # List of associated stamps
+    rewards: list[RewardResponse] = []  # List of associated rewards
     created_at: datetime
     updated_at: datetime | None = None
     active: bool
