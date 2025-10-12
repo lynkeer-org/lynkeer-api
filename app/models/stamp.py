@@ -1,9 +1,7 @@
-from pydantic import EmailStr, field_validator
-from sqlmodel import SQLModel, Field, Session, select, Relationship
+from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, timezone
-from app.core.db import engine
 import uuid
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.customer_pass import CustomerPass

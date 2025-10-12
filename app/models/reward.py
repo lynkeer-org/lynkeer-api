@@ -1,6 +1,5 @@
-from sqlmodel import SQLModel, Field, Session, select, Relationship
+from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, timezone
-
 import uuid
 from typing import TYPE_CHECKING
 
