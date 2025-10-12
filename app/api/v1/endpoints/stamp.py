@@ -57,6 +57,20 @@ async def read_stamp_endpoint(
     )
 
 
+@router.get(
+    "/customer-passes/{customer_pass_id}/stamps",
+    response_model=list[StampResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def list_stamps_by_customer_pass_endpoint(
+    customer_pass_id: uuid.UUID,
+    session: SessionDep,
+    current_user=Depends(get_current_user_or_apikey),
+):
+    from app.services.stamp import read_stamps_by_customer_pass_service
+    return read_stamps_by_customer_pass_service(customer_pass_id=customer_pass_id, session=session)
+
+
 @router.delete(
     "/stamps/{stamp_id}",
     status_code=status.HTTP_204_NO_CONTENT,

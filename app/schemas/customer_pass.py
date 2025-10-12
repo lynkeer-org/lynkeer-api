@@ -39,4 +39,6 @@ class CustomerPassUpdate(BaseModel):
     google_id_class: str | None = None
     google_id_object: str | None = None
     google_wallet_url: str | None = None
+    active_stamps: int | None = None
+    active_rewards: int | None = None
     active: bool | None = None

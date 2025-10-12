@@ -5,10 +5,15 @@ from app.crud.stamp import (
     list_stamps,
     read_stamp,
     read_stamps_by_customer_pass_id,
+    count_active_stamps_by_customer_pass_id,
+    deactivate_all_stamps_by_customer_pass_id,
 )
-from app.crud.customer_pass import read_customer_pass
+from app.crud.customer_pass import read_customer_pass, update_customer_pass
+from app.crud.reward import create_reward
 from app.models.stamp import Stamp
+from app.models.reward import Reward
 from app.schemas.stamp import StampCreate
+from app.schemas.customer_pass import CustomerPassUpdate
 from app.core.db import SessionDep
 import uuid
 
@@ -48,9 +53,43 @@ def create_stamp_service(stamp_data: StampCreate, session: SessionDep, owner_id:
                 status_code=status.HTTP_403_FORBIDDEN, 
                 detail="You can only create stamps for customer passes from your own pass templates"
             )
+    else:
+        # If no owner_id (API key auth), still need to get pass_model for stamp_goal
+        from app.crud.pass_model import read_pass
+        pass_model = read_pass(customer_pass.pass_id, session)
 
+    # Create the new stamp first
     stamp = Stamp.model_validate(stamp_data_dict)
-    return create_stamp(stamp, session)
+    created_stamp = create_stamp(stamp, session)
+
+    # Business Logic: Check if stamp goal is reached
+    
+    # Count active stamps after creating the new one
+    active_stamp_count = count_active_stamps_by_customer_pass_id(customer_pass_id, session)
+    
+    if active_stamp_count >= pass_model.stamp_goal:
+        # Goal reached! Reset stamps and create reward
+        
+        # 1. Deactivate all stamps for this customer_pass
+        deactivated_count = deactivate_all_stamps_by_customer_pass_id(customer_pass_id, session)
+        
+        # 2. Create a new reward
+        reward = Reward(customer_pass_id=customer_pass_id)
+        created_reward = create_reward(reward, session)
+        
+        # 3. Update customer_pass counts: reset active_stamps=0, increment active_rewards
+        update_data = CustomerPassUpdate(
+            active_stamps=0,
+            active_rewards=customer_pass.active_rewards + 1
+        )
+        update_customer_pass(customer_pass, update_data, session)
+        
+    else:
+        # Goal not reached, just update active_stamps count
+        update_data = CustomerPassUpdate(active_stamps=active_stamp_count)
+        update_customer_pass(customer_pass, update_data, session)
+
+    return created_stamp
 
 
 def list_stamps_service(session: SessionDep, owner_id: uuid.UUID | None = None):
