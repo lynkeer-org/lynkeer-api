@@ -1,7 +1,9 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, HTTPException
 from app.schemas.reward import RewardCreate, RewardResponse
 from app.core.db import SessionDep
-from app.core.security import get_current_user_or_apikey, get_current_user
+from app.core.security import get_current_user
+from app.models.owner import Owner
+from app.services.reward import read_rewards_by_customer_pass_service
 from app.services.reward import (
     create_reward_service,
     list_rewards_service,
@@ -21,13 +23,15 @@ router = APIRouter()
 async def create_reward_endpoint(
     reward_data: RewardCreate,
     session: SessionDep,
-    current_owner=Depends(get_current_user_or_apikey),
+    current_owner: Owner = Depends(get_current_user),
 ):
-    # Extract owner_id from current_owner (None if API key authentication)
-    owner_id = current_owner.id if current_owner is not None else None
-    
+    if current_owner.id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Owner ID is missing or unauthorized.",
+        )
     return create_reward_service(
-        reward_data=reward_data, session=session, owner_id=owner_id
+        reward_data=reward_data, session=session, owner_id=current_owner.id
     )
 
 
@@ -37,9 +41,9 @@ async def create_reward_endpoint(
     status_code=status.HTTP_200_OK,
 )
 async def list_rewards_endpoint(
-    session: SessionDep, current_user=Depends(get_current_user)
+    session: SessionDep, current_owner=Depends(get_current_user)
 ):
-    return list_rewards_service(session=session, owner_id=current_user.id)
+    return list_rewards_service(session=session, owner_id=current_owner.id)
 
 
 @router.get(
@@ -50,25 +54,25 @@ async def list_rewards_endpoint(
 async def read_reward_endpoint(
     reward_id: uuid.UUID,
     session: SessionDep,
-    current_user=Depends(get_current_user_or_apikey),
+    current_owner=Depends(get_current_user),
 ):
     return read_reward_service(
-        reward_id=reward_id, session=session
+        reward_id=reward_id, session=session, owner_id=current_owner.id
     )
 
 
 @router.get(
-    "/customer-passes/{customer_pass_id}/rewards",
+    "/customer-passes/rewards/by-customer-pass/{customer_pass_id}",
     response_model=list[RewardResponse],
     status_code=status.HTTP_200_OK,
 )
 async def list_rewards_by_customer_pass_endpoint(
     customer_pass_id: uuid.UUID,
     session: SessionDep,
-    current_user=Depends(get_current_user_or_apikey),
+    current_owner=Depends(get_current_user),
 ):
-    from app.services.reward import read_rewards_by_customer_pass_service
-    return read_rewards_by_customer_pass_service(customer_pass_id=customer_pass_id, session=session)
+    
+    return read_rewards_by_customer_pass_service(customer_pass_id=customer_pass_id, session=session, owner_id=current_owner.id)
 
 
 @router.delete(
@@ -78,8 +82,8 @@ async def list_rewards_by_customer_pass_endpoint(
 async def delete_reward_endpoint(
     reward_id: uuid.UUID,
     session: SessionDep,
-    current_user=Depends(get_current_user),
+    current_owner=Depends(get_current_user),
 ):
     delete_reward_service(
-        reward_id=reward_id, session=session
+        reward_id=reward_id, session=session, owner_id=current_owner.id
     )

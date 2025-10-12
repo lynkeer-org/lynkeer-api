@@ -2,6 +2,7 @@ from fastapi import APIRouter, status, Depends
 from app.schemas.stamp import StampCreate, StampResponse
 from app.core.db import SessionDep
 from app.core.security import get_current_user_or_apikey, get_current_user
+from app.services.stamp import read_stamps_by_customer_pass_service
 from app.services.stamp import (
     create_stamp_service,
     list_stamps_service,
@@ -50,7 +51,7 @@ async def list_stamps_endpoint(
 async def read_stamp_endpoint(
     stamp_id: uuid.UUID,
     session: SessionDep,
-    current_user=Depends(get_current_user_or_apikey),
+    current_owner=Depends(get_current_user_or_apikey),
 ):
     return read_stamp_service(
         stamp_id=stamp_id, session=session
@@ -58,16 +59,16 @@ async def read_stamp_endpoint(
 
 
 @router.get(
-    "/customer-passes/{customer_pass_id}/stamps",
+    "/customer-passes/stamps/by-customer-pass/{customer_pass_id}",
     response_model=list[StampResponse],
     status_code=status.HTTP_200_OK,
 )
 async def list_stamps_by_customer_pass_endpoint(
     customer_pass_id: uuid.UUID,
     session: SessionDep,
-    current_user=Depends(get_current_user_or_apikey),
+    current_owner=Depends(get_current_user_or_apikey),
 ):
-    from app.services.stamp import read_stamps_by_customer_pass_service
+    
     return read_stamps_by_customer_pass_service(customer_pass_id=customer_pass_id, session=session)
 
 
@@ -78,7 +79,7 @@ async def list_stamps_by_customer_pass_endpoint(
 async def delete_stamp_endpoint(
     stamp_id: uuid.UUID,
     session: SessionDep,
-    current_user=Depends(get_current_user),
+    current_owner=Depends(get_current_user),
 ):
     delete_stamp_service(
         stamp_id=stamp_id, session=session
