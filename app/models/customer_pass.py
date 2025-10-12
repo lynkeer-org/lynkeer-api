@@ -22,6 +22,8 @@ class RegistrationMethodEnum(str, Enum):
 class CustomerPassBase(SQLModel):
     device: DeviceEnum = Field(nullable=False)
     registration_method: RegistrationMethodEnum = Field(nullable=False)
+    active_stamps: int = Field(default=0)
+    active_rewards: int = Field(default=0)
     apple_serial_number: str | None = Field(default=None)
     apple_authentication_token: str | None = Field(default=None)
     apple_device_library_id: str | None = Field(default=None)

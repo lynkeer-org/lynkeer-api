@@ -12,6 +12,6 @@ class Reward(SQLModel, table=True):
         default_factory=uuid.uuid4, primary_key=True, index=True
     )
     customer_pass_id: uuid.UUID = Field(foreign_key="customerpass.id", nullable=False)
-    customer_pass: "CustomerPass" = Relationship(back_populates="stamps")
+    customer_pass: "CustomerPass" = Relationship(back_populates="rewards")
     claimed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))    
     active: bool = Field(default=True)

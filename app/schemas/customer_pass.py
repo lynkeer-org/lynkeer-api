@@ -18,6 +18,8 @@ class CustomerPassResponse(BaseModel):
     google_id_class: str | None = None
     google_id_object: str | None = None
     google_wallet_url: str | None = None
+    active_stamps: int
+    active_rewards: int
     stamps: list[StampResponse] = []  # List of associated stamps
     rewards: list[RewardResponse] = []  # List of associated rewards
     created_at: datetime

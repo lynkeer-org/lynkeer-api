@@ -39,8 +39,34 @@ def create_customer_pass_service(customer_pass_data: CustomerPassCreate, session
             detail="You can only create customer passes for your own pass templates"
         )
 
+    # Extract stamp and reward counts
+    active_stamps = customer_pass_dict.get("active_stamps", 0)
+    active_rewards = customer_pass_dict.get("active_rewards", 0)
+
+    # Create the customer pass
     customer_pass = CustomerPass.model_validate(customer_pass_dict)
-    return create_customer_pass(customer_pass, session)
+    created_customer_pass = create_customer_pass(customer_pass, session)
+
+    # Create stamps based on active_stamps
+    if active_stamps > 0:
+        from app.models.stamp import Stamp
+        from app.crud.stamp import create_stamp
+
+        for _ in range(active_stamps):
+            stamp = Stamp(customer_pass_id=created_customer_pass.id)
+            create_stamp(stamp, session)
+
+    # Create rewards based on active_rewards
+    if active_rewards > 0:
+        from app.models.reward import Reward
+        from app.crud.reward import create_reward
+
+        for _ in range(active_rewards):
+            reward = Reward(customer_pass_id=created_customer_pass.id)
+            create_reward(reward, session)
+    
+    return created_customer_pass
+
 
 def list_customer_passes_service(session: SessionDep, owner_id: uuid.UUID):
     return list_customer_passes(session, owner_id)
