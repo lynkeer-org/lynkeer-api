@@ -75,11 +75,14 @@ def test_create_customer_pass(client):
             "first_name": "John",
             "last_name": "Doe", 
             "email": "john.doe@example.com",
-            "phone": "1234567890",
+            "phone": "1111111111",
             "birth_date": "1990-01-01"
         },
         headers=headers,
     )
+    if customer_resp.status_code != status.HTTP_201_CREATED:
+        print(f"Customer creation failed: {customer_resp.status_code}")
+        print(f"Response: {customer_resp.text}")
     assert customer_resp.status_code == status.HTTP_201_CREATED
     customer_id = customer_resp.json()["id"]
     
@@ -99,6 +102,8 @@ def test_create_customer_pass(client):
         "registration_method": "qr",
         "customer_id": customer_id,
         "pass_id": pass_id,
+        "active_stamps": 1,
+        "active_rewards": 0,
     }
     response = client.post(
         "/api/v1/customer-passes",
@@ -111,6 +116,8 @@ def test_create_customer_pass(client):
     assert data["registration_method"] == "qr"
     assert data["customer_id"] == customer_id
     assert data["pass_id"] == pass_id
+    assert data["active_stamps"] == 1
+    assert data["active_rewards"] == 0
 
 
 def test_create_customer_pass_with_bearer_token(client):
@@ -148,6 +155,8 @@ def test_create_customer_pass_with_bearer_token(client):
         "registration_method": "manual",
         "customer_id": customer_id,
         "pass_id": pass_id,
+        "active_stamps": 4,
+        "active_rewards": 2,
     }
     response = client.post(
         "/api/v1/customer-passes",
@@ -160,6 +169,8 @@ def test_create_customer_pass_with_bearer_token(client):
     assert data["registration_method"] == "manual"
     assert data["customer_id"] == customer_id
     assert data["pass_id"] == pass_id
+    assert data["active_stamps"] == 4
+    assert data["active_rewards"] == 2
     assert "Authorization" in headers
     assert headers["Authorization"].startswith("Bearer ")
 
@@ -201,6 +212,8 @@ def test_create_customer_pass_with_api_key(client):
         "registration_method": "link",
         "customer_id": customer_id,
         "pass_id": pass_id,
+        "active_stamps": 5,
+        "active_rewards": 3,
     }
     response = client.post(
         "/api/v1/customer-passes",
@@ -213,6 +226,8 @@ def test_create_customer_pass_with_api_key(client):
     assert data["registration_method"] == "link"
     assert data["customer_id"] == customer_id
     assert data["pass_id"] == pass_id
+    assert data["active_stamps"] == 5
+    assert data["active_rewards"] == 3
     assert "Authorization" in api_key_headers
     assert api_key_headers["Authorization"].startswith("API-KEY ")
 
@@ -275,6 +290,8 @@ def test_create_customer_pass_forbidden_for_other_owner(client):
         "registration_method": "qr",
         "customer_id": customer_id,
         "pass_id": pass_id_owner1,  # First owner's pass template
+        "active_stamps": 3,
+        "active_rewards": 1,
     }
     response = client.post(
         "/api/v1/customer-passes",

@@ -1,7 +1,6 @@
-from pydantic import EmailStr, field_validator
-from sqlmodel import SQLModel, Field, Session, select, Relationship
+from pydantic import EmailStr
+from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, timezone
-from app.core.db import engine
 import uuid
 from typing import TYPE_CHECKING, Optional
 
@@ -15,27 +14,7 @@ class OwnerBase(SQLModel):
     email: EmailStr = Field(default=None)  # Use EmailStr for validation
     phone: str = Field(default=None)
 
-    @field_validator("email")
-    @classmethod
-    def validate_email(cls, value):
-        session = Session(engine)
-        query = select(Owner).where(Owner.email == value).where(Owner.active)
-        email_exists = session.exec(query).first()
-        if email_exists:
-            raise ValueError("Email already registered")
 
-        return value
-
-    @field_validator("phone")
-    @classmethod
-    def validate_phone(cls, value):
-        session = Session(engine)
-        query = select(Owner).where(Owner.phone == value).where(Owner.active)
-        phone_exists = session.exec(query).first()
-        if phone_exists:
-            raise ValueError("Phone already registered")
-
-        return value
 
 
 class Owner(OwnerBase, table=True):
