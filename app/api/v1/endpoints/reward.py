@@ -41,8 +41,13 @@ async def create_reward_endpoint(
     status_code=status.HTTP_200_OK,
 )
 async def list_rewards_endpoint(
-    session: SessionDep, current_owner=Depends(get_current_user)
+    session: SessionDep, current_owner: Owner = Depends(get_current_user)
 ):
+    if current_owner.id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Owner ID is missing or unauthorized.",
+        )
     return list_rewards_service(session=session, owner_id=current_owner.id)
 
 

@@ -41,8 +41,8 @@ def create_reward_service(reward_data: RewardCreate, session: SessionDep, owner_
     return create_reward(reward, session)
 
 
-def list_rewards_service(session: SessionDep):
-    return list_rewards(session)
+def list_rewards_service(session: SessionDep, owner_id: uuid.UUID):
+    return list_rewards(session, owner_id)
 
 
 def read_reward_service(reward_id: uuid.UUID, session: SessionDep):
