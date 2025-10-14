@@ -5,6 +5,7 @@ from app.crud.stamp import (
     read_stamp,
     count_active_stamps_by_customer_pass_id,
     deactivate_all_stamps_by_customer_pass_id,
+    read_stamps_by_customer_pass_id,
 )
 from app.crud.customer_pass import read_customer_pass, update_customer_pass
 from app.crud.pass_model import read_pass
@@ -85,6 +86,26 @@ def create_stamp_service(stamp_data: StampCreate, session: SessionDep, owner_id:
 
     return created_stamp
 
+
+def read_stamps_by_customer_pass_service(customer_pass_id: uuid.UUID, session: SessionDep, owner_id: uuid.UUID):
+    # Validate that the customer_pass exists
+    customer_pass = read_customer_pass(
+        customer_pass_id=customer_pass_id, session=session
+    )
+    if not customer_pass:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="CustomerPass does not exist"
+        )
+    
+    # Owner validation: Ensure the customer pass belongs to owner's pass template
+    pass_model = read_pass(customer_pass.pass_id, session)
+    if pass_model.owner_id != owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="You can only access stamps for your own pass templates"
+        )
+    
+    return read_stamps_by_customer_pass_id(customer_pass_id=customer_pass_id, session=session)
 
 
 def delete_stamp_service(stamp_id: uuid.UUID, session: SessionDep):

@@ -4,7 +4,7 @@ from app.core.db import SessionDep
 from app.core.security import get_current_user
 from app.services.stamp import (
     create_stamp_service,
-    
+    read_stamps_by_customer_pass_service,
 )
 
 

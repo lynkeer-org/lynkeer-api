@@ -41,6 +41,26 @@ def create_reward_service(reward_data: RewardCreate, session: SessionDep, owner_
     return create_reward(reward, session)
 
 
+def read_rewards_by_customer_pass_service(customer_pass_id: uuid.UUID, session: SessionDep, owner_id: uuid.UUID):
+    # Validate that the customer_pass exists
+    customer_pass = read_customer_pass(
+        customer_pass_id=customer_pass_id, session=session
+    )
+    if not customer_pass:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="CustomerPass does not exist"
+        )
+    
+    # Owner validation: Ensure the customer pass belongs to owner's pass template
+    pass_model = read_pass(customer_pass.pass_id, session)
+    if pass_model.owner_id != owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="You can only access rewards for your own pass templates"
+        )
+    
+    return read_rewards_by_customer_pass_id(customer_pass_id=customer_pass_id, session=session)
+
 
 def delete_reward_service(reward_id: uuid.UUID, session: SessionDep):
     reward_db = read_reward(reward_id=reward_id, session=session)

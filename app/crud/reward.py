@@ -44,10 +44,10 @@ def delete_reward(reward: Reward, session: SessionDep):
 
 def count_active_rewards_by_customer_pass_id(customer_pass_id: uuid.UUID, session: SessionDep) -> int:
     """Count the number of active rewards for a specific customer pass"""
-    query = select(func.count()).where(
+    query = select(func.count(Reward.id)).where(
         Reward.customer_pass_id == customer_pass_id,
         Reward.active == True
     )
-
-    count = session.exec(query).scalar_one()
-    return count
+    result = session.exec(query)
+    count = result.one()
+    return count or 0

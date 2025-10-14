@@ -43,13 +43,13 @@ def delete_stamp(stamp: Stamp, session: SessionDep):
 
 def count_active_stamps_by_customer_pass_id(customer_pass_id: uuid.UUID, session: SessionDep) -> int:
     """Count the number of active stamps for a specific customer pass"""
-    query = select(func.count()).where(
+    query = select(func.count(Stamp.id)).where(
     Stamp.customer_pass_id == customer_pass_id,
     Stamp.active == True
     )
-
-    count = session.exec(query).scalar_one()
-    return count
+    result = session.exec(query)
+    count = result.one()
+    return count or 0
 
 def deactivate_all_stamps_by_customer_pass_id(customer_pass_id: uuid.UUID, session: SessionDep):
     """Set all stamps for a customer pass to active = False"""
