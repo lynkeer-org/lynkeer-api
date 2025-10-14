@@ -1,6 +1,5 @@
-from datetime import datetime, timezone
 from fastapi import HTTPException, status
-from sqlmodel import select
+from sqlmodel import func, select, update
 from app.core.db import SessionDep
 from app.models.stamp import Stamp
 import uuid
@@ -27,12 +26,11 @@ def read_stamp(stamp_id: uuid.UUID, session: SessionDep):
 
 
 def read_stamps_by_customer_pass_id(customer_pass_id: uuid.UUID, session: SessionDep):
-    stamps = session.exec(
-        select(Stamp).where(
+    query = select(Stamp).where(
             Stamp.customer_pass_id == customer_pass_id,
             Stamp.active == True
         )
-    ).all()
+    stamps = session.exec(query).all()
     return stamps
 
 
@@ -45,25 +43,24 @@ def delete_stamp(stamp: Stamp, session: SessionDep):
 
 def count_active_stamps_by_customer_pass_id(customer_pass_id: uuid.UUID, session: SessionDep) -> int:
     """Count the number of active stamps for a specific customer pass"""
-    query = select(Stamp).where(
-        Stamp.customer_pass_id == customer_pass_id,
-        Stamp.active == True
+    query = select(func.count()).where(
+    Stamp.customer_pass_id == customer_pass_id,
+    Stamp.active == True
     )
-    stamps = session.exec(query).all()
-    return len(stamps)
 
+    count = session.exec(query).scalar_one()
+    return count
 
 def deactivate_all_stamps_by_customer_pass_id(customer_pass_id: uuid.UUID, session: SessionDep):
     """Set all stamps for a customer pass to active = False"""
-    query = select(Stamp).where(
-        Stamp.customer_pass_id == customer_pass_id,
-        Stamp.active == True
+    query = (
+        update(Stamp)
+        .where(
+            Stamp.customer_pass_id == customer_pass_id,
+            Stamp.active == True
+        )
+        .values(active=False)
     )
-    stamps = session.exec(query).all()
     
-    for stamp in stamps:
-        stamp.active = False
-        session.add(stamp)
-    
+    session.exec(query)
     session.flush()
-    return len(stamps)  # Return number of stamps deactivated

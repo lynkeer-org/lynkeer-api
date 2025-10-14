@@ -41,32 +41,6 @@ def create_reward_service(reward_data: RewardCreate, session: SessionDep, owner_
     return create_reward(reward, session)
 
 
-def list_rewards_service(session: SessionDep, owner_id: uuid.UUID):
-    return list_rewards(session, owner_id)
-
-
-def read_reward_service(reward_id: uuid.UUID, session: SessionDep):
-    reward_db = read_reward(reward_id=reward_id, session=session)
-    if not reward_db:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="The reward does not exist",
-        )
-    return reward_db
-
-
-def read_rewards_by_customer_pass_service(customer_pass_id: uuid.UUID, session: SessionDep):
-    # Validate that the customer_pass exists
-    customer_pass = read_customer_pass(
-        customer_pass_id=customer_pass_id, session=session
-    )
-    if not customer_pass:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="CustomerPass does not exist"
-        )
-    
-    return read_rewards_by_customer_pass_id(customer_pass_id=customer_pass_id, session=session)
-
 
 def delete_reward_service(reward_id: uuid.UUID, session: SessionDep):
     reward_db = read_reward(reward_id=reward_id, session=session)

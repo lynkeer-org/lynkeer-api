@@ -1,14 +1,13 @@
 from fastapi import HTTPException, status
 from app.crud.stamp import (
     create_stamp,
-    delete_stamp,
-    list_stamps,
+    delete_stamp,    
     read_stamp,
-    read_stamps_by_customer_pass_id,
     count_active_stamps_by_customer_pass_id,
     deactivate_all_stamps_by_customer_pass_id,
 )
 from app.crud.customer_pass import read_customer_pass, update_customer_pass
+from app.crud.pass_model import read_pass
 from app.crud.reward import create_reward
 from app.models.stamp import Stamp
 from app.models.reward import Reward
@@ -43,20 +42,15 @@ def create_stamp_service(stamp_data: StampCreate, session: SessionDep, owner_id:
             status_code=status.HTTP_400_BAD_REQUEST, detail="CustomerPass is not active"
         )
 
-    # Owner validation: If authenticated with Bearer token, validate ownership through pass template
-    if owner_id is not None:
-        # Need to import and read the pass to check owner
-        from app.crud.pass_model import read_pass
-        pass_model = read_pass(customer_pass.pass_id, session)
-        if pass_model.owner_id != owner_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, 
-                detail="You can only create stamps for customer passes from your own pass templates"
-            )
-    else:
-        # If no owner_id (API key auth), still need to get pass_model for stamp_goal
-        from app.crud.pass_model import read_pass
-        pass_model = read_pass(customer_pass.pass_id, session)
+    
+    # Owner validation: validate ownership through pass template    
+    pass_model = read_pass(customer_pass.pass_id, session)
+    if pass_model.owner_id != owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="You can only create stamps for customer passes from your own pass templates"
+        )    
+        
 
     # Create the new stamp first
     stamp = Stamp.model_validate(stamp_data_dict)
@@ -71,7 +65,7 @@ def create_stamp_service(stamp_data: StampCreate, session: SessionDep, owner_id:
         # Goal reached! Reset stamps and create reward
         
         # 1. Deactivate all stamps for this customer_pass
-        deactivated_count = deactivate_all_stamps_by_customer_pass_id(customer_pass_id, session)
+        deactivate_all_stamps_by_customer_pass_id(customer_pass_id, session)
         
         # 2. Create a new reward
         reward = Reward(customer_pass_id=customer_pass_id)
@@ -91,51 +85,6 @@ def create_stamp_service(stamp_data: StampCreate, session: SessionDep, owner_id:
 
     return created_stamp
 
-
-def list_stamps_service(session: SessionDep, owner_id: uuid.UUID | None = None):
-    if owner_id is not None:
-        # Filter stamps by owner through customer_pass -> pass_model relationship
-        from sqlmodel import select
-        from app.models.customer_pass import CustomerPass
-        from app.models.pass_model import PassModel
-        
-        query = (
-            select(Stamp)
-            .join(CustomerPass, Stamp.customer_pass_id == CustomerPass.id)
-            .join(PassModel, CustomerPass.pass_id == PassModel.id)
-            .where(
-                Stamp.active == True,
-                CustomerPass.active == True,
-                PassModel.active == True,
-                PassModel.owner_id == owner_id
-            )
-        )
-        return session.exec(query).all()
-    else:
-        return list_stamps(session)
-
-
-def read_stamp_service(stamp_id: uuid.UUID, session: SessionDep):
-    stamp_db = read_stamp(stamp_id=stamp_id, session=session)
-    if not stamp_db:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="The stamp does not exist",
-        )
-    return stamp_db
-
-
-def read_stamps_by_customer_pass_service(customer_pass_id: uuid.UUID, session: SessionDep):
-    # Validate that the customer_pass exists
-    customer_pass = read_customer_pass(
-        customer_pass_id=customer_pass_id, session=session
-    )
-    if not customer_pass:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="CustomerPass does not exist"
-        )
-    
-    return read_stamps_by_customer_pass_id(customer_pass_id=customer_pass_id, session=session)
 
 
 def delete_stamp_service(stamp_id: uuid.UUID, session: SessionDep):

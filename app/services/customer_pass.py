@@ -12,6 +12,11 @@ from fastapi import HTTPException, status
 import uuid
 from app.crud.customer import read_customer
 from app.crud.pass_model import read_pass
+from app.models.stamp import Stamp
+from app.crud.stamp import create_stamp
+from app.models.reward import Reward
+from app.crud.reward import create_reward
+
 
 def create_customer_pass_service(customer_pass_data: CustomerPassCreate, session: SessionDep, owner_id: uuid.UUID | None = None):
     customer_pass_dict = customer_pass_data.model_dump()
@@ -49,17 +54,13 @@ def create_customer_pass_service(customer_pass_data: CustomerPassCreate, session
 
     # Create stamps based on active_stamps
     if active_stamps > 0:
-        from app.models.stamp import Stamp
-        from app.crud.stamp import create_stamp
-
+       
         for _ in range(active_stamps):
             stamp = Stamp(customer_pass_id=created_customer_pass.id)
             create_stamp(stamp, session)
 
     # Create rewards based on active_rewards
-    if active_rewards > 0:
-        from app.models.reward import Reward
-        from app.crud.reward import create_reward
+    if active_rewards > 0:        
 
         for _ in range(active_rewards):
             reward = Reward(customer_pass_id=created_customer_pass.id)
