@@ -75,11 +75,14 @@ def test_create_customer_pass(client):
             "first_name": "John",
             "last_name": "Doe", 
             "email": "john.doe@example.com",
-            "phone": "1234567890",
+            "phone": "1111111111",
             "birth_date": "1990-01-01"
         },
         headers=headers,
     )
+    if customer_resp.status_code != status.HTTP_201_CREATED:
+        print(f"Customer creation failed: {customer_resp.status_code}")
+        print(f"Response: {customer_resp.text}")
     assert customer_resp.status_code == status.HTTP_201_CREATED
     customer_id = customer_resp.json()["id"]
     
@@ -99,6 +102,8 @@ def test_create_customer_pass(client):
         "registration_method": "qr",
         "customer_id": customer_id,
         "pass_id": pass_id,
+        "active_stamps": 3,
+        "active_rewards": 1,
     }
     response = client.post(
         "/api/v1/customer-passes",
@@ -111,6 +116,26 @@ def test_create_customer_pass(client):
     assert data["registration_method"] == "qr"
     assert data["customer_id"] == customer_id
     assert data["pass_id"] == pass_id
+    assert data["active_stamps"] == 3
+    assert data["active_rewards"] == 1
+    customer_pass_id = data["id"]
+    
+    # Verify the customer pass was created correctly by checking the response
+    # The stamps and rewards creation is verified through the active_stamps and active_rewards fields
+    # which are set during the customer pass creation service
+    assert data["active_stamps"] == 3, "Customer pass should have 3 active stamps"
+    assert data["active_rewards"] == 1, "Customer pass should have 1 active reward"
+    
+    # Additional verification: check that customer pass can be retrieved
+    retrieve_response = client.get(
+        f"/api/v1/customer-passes/{customer_pass_id}",
+        headers=headers,
+    )
+    assert retrieve_response.status_code == status.HTTP_200_OK
+    retrieved_data = retrieve_response.json()
+    assert retrieved_data["id"] == customer_pass_id
+    assert retrieved_data["active_stamps"] == 3
+    assert retrieved_data["active_rewards"] == 1
 
 
 def test_create_customer_pass_with_bearer_token(client):
@@ -148,6 +173,8 @@ def test_create_customer_pass_with_bearer_token(client):
         "registration_method": "manual",
         "customer_id": customer_id,
         "pass_id": pass_id,
+        "active_stamps": 2,
+        "active_rewards": 1,
     }
     response = client.post(
         "/api/v1/customer-passes",
@@ -160,8 +187,27 @@ def test_create_customer_pass_with_bearer_token(client):
     assert data["registration_method"] == "manual"
     assert data["customer_id"] == customer_id
     assert data["pass_id"] == pass_id
+    assert data["active_stamps"] == 2
+    assert data["active_rewards"] == 1
     assert "Authorization" in headers
     assert headers["Authorization"].startswith("Bearer ")
+    customer_pass_id = data["id"]
+    
+    # Verify the customer pass was created correctly by checking the response
+    # The stamps and rewards creation is verified through the active_stamps and active_rewards fields
+    assert data["active_stamps"] == 2, "Customer pass should have 2 active stamps"
+    assert data["active_rewards"] == 1, "Customer pass should have 1 active reward"
+    
+    # Additional verification: check that customer pass can be retrieved
+    retrieve_response = client.get(
+        f"/api/v1/customer-passes/{customer_pass_id}",
+        headers=headers,
+    )
+    assert retrieve_response.status_code == status.HTTP_200_OK
+    retrieved_data = retrieve_response.json()
+    assert retrieved_data["id"] == customer_pass_id
+    assert retrieved_data["active_stamps"] == 2
+    assert retrieved_data["active_rewards"] == 1
 
 
 def test_create_customer_pass_with_api_key(client):
@@ -201,6 +247,8 @@ def test_create_customer_pass_with_api_key(client):
         "registration_method": "link",
         "customer_id": customer_id,
         "pass_id": pass_id,
+        "active_stamps": 4,
+        "active_rewards": 2,
     }
     response = client.post(
         "/api/v1/customer-passes",
@@ -213,8 +261,27 @@ def test_create_customer_pass_with_api_key(client):
     assert data["registration_method"] == "link"
     assert data["customer_id"] == customer_id
     assert data["pass_id"] == pass_id
+    assert data["active_stamps"] == 4
+    assert data["active_rewards"] == 2
     assert "Authorization" in api_key_headers
     assert api_key_headers["Authorization"].startswith("API-KEY ")
+    customer_pass_id = data["id"]
+    
+    # Verify the customer pass was created correctly by checking the response
+    # The stamps and rewards creation is verified through the active_stamps and active_rewards fields
+    assert data["active_stamps"] == 4, "Customer pass should have 4 active stamps"
+    assert data["active_rewards"] == 2, "Customer pass should have 2 active rewards"
+    
+    # Additional verification: check that customer pass can be retrieved
+    retrieve_response = client.get(
+        f"/api/v1/customer-passes/{customer_pass_id}",
+        headers=api_key_headers,
+    )
+    assert retrieve_response.status_code == status.HTTP_200_OK
+    retrieved_data = retrieve_response.json()
+    assert retrieved_data["id"] == customer_pass_id
+    assert retrieved_data["active_stamps"] == 4
+    assert retrieved_data["active_rewards"] == 2
 
 
 def test_create_customer_pass_forbidden_for_other_owner(client):
@@ -275,6 +342,8 @@ def test_create_customer_pass_forbidden_for_other_owner(client):
         "registration_method": "qr",
         "customer_id": customer_id,
         "pass_id": pass_id_owner1,  # First owner's pass template
+        "active_stamps": 3,
+        "active_rewards": 1,
     }
     response = client.post(
         "/api/v1/customer-passes",

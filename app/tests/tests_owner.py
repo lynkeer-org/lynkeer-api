@@ -12,6 +12,11 @@ def test_create_owner(client):
             "password": "securepassword",
         },
     )
+    
+    # Print response details for debugging
+    print(f"Status Code: {response.status_code}")
+    print(f"Response JSON: {response.json()}")
+    
     assert response.status_code == status.HTTP_201_CREATED
 
 

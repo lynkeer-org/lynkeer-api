@@ -1,5 +1,5 @@
 import uuid
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from app.core.db import SessionDep
 from app.core.security import get_current_user, get_current_user_or_apikey
 from app.models.owner import Owner
@@ -16,7 +16,7 @@ from app.services.pass_template import (
     read_pass_template_service,
     update_pass_template_service,
 )
-from fastapi import HTTPException
+
 
 router = APIRouter()
 
