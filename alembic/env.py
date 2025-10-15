@@ -5,7 +5,7 @@ from sqlalchemy import pool
 from sqlmodel import SQLModel
 from alembic import context
 
-from app.models import owner, pass_model, pass_type, pass_field, customer 
+from app.models import owner, pass_model, pass_type, pass_field, customer, customer_pass, stamp, reward  # Import all models to ensure they are registered with SQLModel
 
 
 # this is the Alembic Config object, which provides

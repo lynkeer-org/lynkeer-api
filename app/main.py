@@ -8,6 +8,8 @@ from app.api.v1.endpoints import (
     pass_template,
     pass_type,
     customer_pass,
+    stamp,
+    reward,
 )  # This should work if structure is correct
 
 from app.core.db import create_all_tables
@@ -53,6 +55,18 @@ app.include_router(
     customer_pass.router,
     prefix="/api/v1",
     tags=["Customer-passes"],
+)
+
+app.include_router(
+    stamp.router,
+    prefix="/api/v1",
+    tags=["Stamps"],
+)
+
+app.include_router(
+    reward.router,
+    prefix="/api/v1",
+    tags=["Rewards"],
 )
 
 

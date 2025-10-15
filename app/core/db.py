@@ -20,6 +20,8 @@ engine = create_engine(database_url, echo=True)
 
 @asynccontextmanager
 async def create_all_tables(app: FastAPI):
+    # Import all models to ensure they are registered with SQLModel
+    import app.models
     SQLModel.metadata.create_all(engine)
     yield
 

@@ -1,13 +1,39 @@
 from datetime import datetime, timezone
-from sqlmodel import select
+from sqlmodel import select, Session
 from app.models.owner import Owner
 from app.schemas.owner import OwnerUpdate
 from fastapi import HTTPException, status
-from app.core.db import SessionDep
+from app.core.db import SessionDep, engine
 import uuid
 
 
-def create_owner(owner_db: Owner, session: SessionDep):
+def check_email_exists(email: str, session: Session | None = None) -> bool:
+    """Check if an active owner with this email already exists"""
+    if session is None:
+        # Create temporary session for field validation
+        with Session(engine) as temp_session:
+            query = select(Owner).where(Owner.email == email).where(Owner.active == True)
+            return temp_session.exec(query).first() is not None
+    else:
+        # Use provided session (from endpoint/service)
+        query = select(Owner).where(Owner.email == email).where(Owner.active == True)
+        return session.exec(query).first() is not None
+
+
+def check_phone_exists(phone: str, session: Session | None = None) -> bool:
+    """Check if an active owner with this phone already exists"""  
+    if session is None:
+        # Create temporary session for field validation
+        with Session(engine) as temp_session:
+            query = select(Owner).where(Owner.phone == phone).where(Owner.active == True)
+            return temp_session.exec(query).first() is not None
+    else:
+        # Use provided session (from endpoint/service)
+        query = select(Owner).where(Owner.phone == phone).where(Owner.active == True)
+        return session.exec(query).first() is not None
+
+
+def create_owner(owner_db, session: SessionDep):
     session.add(owner_db)
     session.flush()
     return owner_db
