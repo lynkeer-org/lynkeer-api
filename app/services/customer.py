@@ -14,12 +14,14 @@ from app.crud.customer import get_customer_by_email
 import uuid
 
 def create_customer_service(customer_data: CustomerCreate, session: SessionDep, owner_id: uuid.UUID | None = None):
-    # Check if email already exists
-    if get_customer_by_email(session, customer_data.email):
+    # Check if email already exists in customer table
+    existing_customer = get_customer_by_email(session, customer_data.email)
+    if existing_customer:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered"
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Customer email already registered"
         )
+    
     customer_dict = customer_data.model_dump()
     customer = Customer.model_validate(customer_dict)
     return create_customer(customer, session)

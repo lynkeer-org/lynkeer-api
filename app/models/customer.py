@@ -1,9 +1,8 @@
 import uuid
 from datetime import datetime, date, timezone
-from pydantic import EmailStr, field_validator
-from sqlmodel import Relationship, SQLModel, Field, Session, select
+from pydantic import EmailStr
+from sqlmodel import Relationship, SQLModel, Field
 from typing import TYPE_CHECKING, Optional
-from app.core.db import engine
 from app.models.customer_pass import CustomerPass
 
 if TYPE_CHECKING:
@@ -16,16 +15,6 @@ class CustomerBase(SQLModel):
     email: EmailStr = Field(default=None)
     phone: str = Field(default=None)
     birth_date: date = Field(default=None)
-
-    @field_validator("email")
-    @classmethod
-    def validate_email(cls, value):
-        session = Session(engine)
-        query = select(Customer).where(Customer.email == value)
-        email_exists = session.exec(query).first()
-        if email_exists:
-            raise ValueError("Email already registered")
-        return value
 
     
 
