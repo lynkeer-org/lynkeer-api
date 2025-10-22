@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from app.schemas.customer_pass import CustomerPassResponse
 from app.schemas.stamp import StampCreate, StampResponse
 from app.core.db import SessionDep
 from app.core.security import get_current_user
@@ -13,7 +14,7 @@ router = APIRouter()
 
 @router.post(
     "/stamps",
-    response_model=StampResponse,
+    response_model=CustomerPassResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_stamp_endpoint(
