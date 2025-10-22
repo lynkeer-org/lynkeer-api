@@ -77,14 +77,14 @@ def create_stamp_service(stamp_data: StampCreate, session: SessionDep, owner_id:
             active_stamps=0,
             active_rewards=customer_pass.active_rewards + 1
         )
-        update_customer_pass(customer_pass, update_data, session)
+        customer_pass_updated = update_customer_pass(customer_pass, update_data, session)
         
     else:
         # Goal not reached, just update active_stamps count
         update_data = CustomerPassUpdate(active_stamps=active_stamp_count)
-        update_customer_pass(customer_pass, update_data, session)
+        customer_pass_updated = update_customer_pass(customer_pass, update_data, session)
 
-    return created_stamp
+    return customer_pass_updated
 
 
 def read_stamps_by_customer_pass_service(customer_pass_id: uuid.UUID, session: SessionDep, owner_id: uuid.UUID):

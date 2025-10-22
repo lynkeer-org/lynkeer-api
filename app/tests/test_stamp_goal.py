@@ -60,9 +60,8 @@ def test_stamp_goal_completion(client):
     )
     assert stamp1_resp.status_code == status.HTTP_201_CREATED
     
-    # Check customer pass state after 1st stamp
-    cp_check1 = client.get(f"/api/v1/customer-passes/{customer_pass_id}", headers=headers)
-    cp_data1 = cp_check1.json()
+    # Check customer pass state after 1st stamp (from the response)
+    cp_data1 = stamp1_resp.json()
     assert cp_data1["active_stamps"] == 1
     assert cp_data1["active_rewards"] == 0
     
@@ -74,9 +73,8 @@ def test_stamp_goal_completion(client):
     )
     assert stamp2_resp.status_code == status.HTTP_201_CREATED
     
-    # Check customer pass state after 2nd stamp
-    cp_check2 = client.get(f"/api/v1/customer-passes/{customer_pass_id}", headers=headers)
-    cp_data2 = cp_check2.json()
+    # Check customer pass state after 2nd stamp (from the response)
+    cp_data2 = stamp2_resp.json()
     assert cp_data2["active_stamps"] == 2
     assert cp_data2["active_rewards"] == 0
     
@@ -96,9 +94,8 @@ def test_stamp_goal_completion(client):
         assert stamp_resp.status_code == status.HTTP_201_CREATED
         current_stamps += 1
         
-        # Check customer pass state
-        cp_check = client.get(f"/api/v1/customer-passes/{customer_pass_id}", headers=headers)
-        cp_data = cp_check.json()
+        # Check customer pass state from the response
+        cp_data = stamp_resp.json()
         
         if cp_data["active_stamps"] == 0 and cp_data["active_rewards"] == 1:
             # Goal was reached! Stamps reset and reward created
@@ -129,9 +126,8 @@ def test_stamp_goal_completion(client):
     )
     assert stamp_after_resp.status_code == status.HTTP_201_CREATED
     
-    # Check that stamps restart from 1
-    cp_final = client.get(f"/api/v1/customer-passes/{customer_pass_id}", headers=headers)
-    cp_final_data = cp_final.json()
+    # Check that stamps restart from 1 (from the response)
+    cp_final_data = stamp_after_resp.json()
     assert cp_final_data["active_stamps"] == 1
     assert cp_final_data["active_rewards"] == 1
 
@@ -181,18 +177,16 @@ def test_stamp_goal_multiple_rewards(client):
     
     while rewards_earned < 2 and stamps_created < max_stamps:
         # Create stamp
-        client.post("/api/v1/stamps", json={"customer_pass_id": customer_pass_id}, headers=headers)
+        stamp_resp = client.post("/api/v1/stamps", json={"customer_pass_id": customer_pass_id}, headers=headers)
+        assert stamp_resp.status_code == status.HTTP_201_CREATED
         stamps_created += 1
         
-        # Check if reward was earned
-        cp_check = client.get(f"/api/v1/customer-passes/{customer_pass_id}", headers=headers)
-        current_rewards = cp_check.json()["active_rewards"]
+        # Check if reward was earned (from the response)
+        current_rewards = stamp_resp.json()["active_rewards"]
         
         if current_rewards > rewards_earned:
             rewards_earned = current_rewards
             print(f"Reward #{rewards_earned} earned after {stamps_created} stamps!")
     
     # Verify final state
-    cp_final = client.get(f"/api/v1/customer-passes/{customer_pass_id}", headers=headers)
-    final_data = cp_final.json()
-    assert final_data["active_rewards"] >= 2, "Should have earned at least 2 rewards"
+    assert rewards_earned >= 2, "Should have earned at least 2 rewards"
