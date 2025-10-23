@@ -12,5 +12,6 @@ class Reward(SQLModel, table=True):
     )
     customer_pass_id: uuid.UUID = Field(foreign_key="customerpass.id", nullable=False)
     customer_pass: "CustomerPass" = Relationship(back_populates="rewards")
-    claimed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))    
+    claimed_at: datetime | None = Field(default=None)  # When the reward was claimed - set when customer redeems
+    issued_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # When the reward was issued
     active: bool = Field(default=True)
