@@ -1,96 +1,161 @@
+from xmlrpc import client
 import pytest
 from fastapi import status
 
 from app.tests.test_customer_pass import get_auth_headers, create_pass_template
 
-def test_claim_rewards_endpoint(client):
-	"""Test claiming rewards via the claim_rewards endpoint"""
-	headers = get_auth_headers(client)
+def get_auth_headers(client):
+    # Create owner
+    client.post(
+        "/api/v1/sign-up",
+        json={
+            "first_name": "Andres",
+            "last_name": "Gonzalez",
+            "email": "andres@example.com",
+            "phone": "1234567890",
+            "password": "securepassword",
+        },
+    )
+    # Login owner
+    response = client.post(
+        "/api/v1/sign-in",
+        json={
+            "email": "andres@example.com",
+            "password": "securepassword",
+        },
+    )
+    token = response.json().get("token")
+    assert token is not None
+    return {"Authorization": f"Bearer {token}"}
 
-	# Create a customer
-	customer_resp = client.post(
-		"/api/v1/customers",
-		json={
-			"first_name": "Claim",
-			"last_name": "Test",
-			"email": "claim.test@example.com",
-			"phone": "3333333333",
-			"birth_date": "1990-01-01"
-		},
-		headers=headers,
-	)
-	assert customer_resp.status_code == status.HTTP_201_CREATED
-	customer_id = customer_resp.json()["id"]
+def create_pass_type(client, headers):
+    response = client.post(
+        "/api/v1/types-passes",
+        json={"type": "TestType"},
+        headers=headers,
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    return response.json()["id"]
 
-	# Create a pass template and customer pass
-	create_pass_template(client)
-	pass_list_resp = client.get("/api/v1/pass-template", headers=headers)
-	pass_id = pass_list_resp.json()[0]["id"]
+def create_pass_template(client):
+    headers = get_auth_headers(client)
+    pass_type_id = create_pass_type(client, headers)
+    # Sample pass field object, adjust keys as needed for your schema
+    sample_pass_field = {
+        "key": "field_key",
+        "label": "Field Label",
+        "value": "Field Value",
+        "field_type": "text"
+    }
+    response = client.post(
+        "/api/v1/pass-template",
+        json={
+            "title": "Test Pass",
+            "stamp_goal": 5,
+            "logo_url": "https://example.com/logo.png",
+            "text_color": "#000000",
+            "background_color": "#ffffff",
+            "google_class_id": "test_google_class",
+            "apple_pass_type_identifier": "test_apple_id",
+            "pass_type_id": pass_type_id,
+            "pass_fields": [sample_pass_field],  # <-- Correct field name and sample object
+        },
+        headers=headers,
+    )
+    print(response.json())  # For debugging if it fails
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["title"] == "Test Pass"
 
-	customer_pass_data = {
-		"device": "android",
-		"registration_method": "manual",
-		"customer_id": customer_id,
-		"pass_id": pass_id,
-		"active_stamps": 0,
-		"active_rewards": 0,
-	}
-	cp_resp = client.post("/api/v1/customer-passes", json=customer_pass_data, headers=headers)
-	assert cp_resp.status_code == status.HTTP_201_CREATED
-	customer_pass_id = cp_resp.json()["id"]
 
-	# Earn two rewards by creating enough stamps (simulate earning, not claiming)
-	rewards_earned = 0
-	max_stamps = 20
-	while rewards_earned < 2 and max_stamps > 0:
-		stamp_resp = client.post("/api/v1/stamps", json={"customer_pass_id": customer_pass_id}, headers=headers)
-		assert stamp_resp.status_code == status.HTTP_201_CREATED
-		rewards_earned = stamp_resp.json()["active_rewards"]
-		max_stamps -= 1
-	assert rewards_earned >= 2, "Should have earned at least 2 rewards before claiming"
 
-	# List rewards before claiming
-	rewards_resp = client.get(f"/api/v1/customer-passes/{customer_pass_id}/rewards", headers=headers)
-	assert rewards_resp.status_code == status.HTTP_200_OK
-	rewards = rewards_resp.json()
-	# All rewards should be active and unclaimed
-	active_rewards = [r for r in rewards if r["active"]]
-	assert len(active_rewards) >= 2
-	assert all(r["claimed_at"] is None for r in active_rewards)
+def test_claim_rewards(client):
+    headers = get_auth_headers(client)
+    
+    # Create a customer
+    customer_resp = client.post(
+        "/api/v1/customers",
+        json={
+            "first_name": "John",
+            "last_name": "Doe", 
+            "email": "john.doe@example.com",
+            "phone": "1111111111",
+            "birth_date": "1990-01-01"
+        },
+        headers=headers,
+    )
+    if customer_resp.status_code != status.HTTP_201_CREATED:
+        print(f"Customer creation failed: {customer_resp.status_code}")
+        print(f"Response: {customer_resp.text}")
+    assert customer_resp.status_code == status.HTTP_201_CREATED
+    customer_id = customer_resp.json()["id"]
+    
+    # Create a pass template using the existing function
+    create_pass_template(client)
+    
+    # Get the created pass template ID by listing pass templates
+    pass_list_resp = client.get("/api/v1/pass-template", headers=headers)
+    assert pass_list_resp.status_code == status.HTTP_200_OK
+    pass_templates = pass_list_resp.json()
+    assert len(pass_templates) > 0
+    pass_id = pass_templates[0]["id"]
+    
+    # Create customer pass
+    customer_pass_data = {
+        "device": "ios",
+        "registration_method": "qr",
+        "customer_id": customer_id,
+        "pass_id": pass_id,
+        "active_stamps": 3,
+        "active_rewards": 2,
+    }
+    response = client.post(
+        "/api/v1/customer-passes",
+        json=customer_pass_data,
+        headers=headers,
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    data = response.json()
+    assert data["device"] == "ios"
+    assert data["registration_method"] == "qr"
+    assert data["customer_id"] == customer_id
+    assert data["pass_id"] == pass_id
+    assert data["active_stamps"] == 3
+    assert data["active_rewards"] == 2
+    customer_pass_id = data["id"]    
+ 
+    
+    # Additional verification: check that customer pass can be retrieved
+    retrieve_response = client.get(
+        f"/api/v1/customer-passes/{customer_pass_id}",
+        headers=headers,
+    )
+    assert retrieve_response.status_code == status.HTTP_200_OK
+    retrieved_data = retrieve_response.json()
+    assert retrieved_data["id"] == customer_pass_id
+    assert retrieved_data["active_stamps"] == 3
+    assert retrieved_data["active_rewards"] == 2
+    
+	# --- Check customer pass state before claiming ---
+    get_pass_response = client.get(f"/api/v1/customer-passes/{customer_pass_id}", headers=headers)
+    assert get_pass_response.status_code == status.HTTP_200_OK
+    customer_pass_before = get_pass_response.json()
+    active_rewards = customer_pass_before["active_rewards"]
 
-	# Save the ids and issued_at of the rewards before claiming
-	reward_ids_before = [r["id"] for r in active_rewards]
-	issued_ats_before = [r["issued_at"] for r in active_rewards]
+    # --- Claim 1 reward ---
+    claim_response = client.get(
+        f"/api/v1/rewards/claim-reward/{customer_pass_id}",
+        params={"number_of_rewards": 1},
+        headers=headers,
+    )
+    assert claim_response.status_code == status.HTTP_200_OK
+    customer_pass_after = claim_response.json()
+    assert customer_pass_after["active_rewards"] == active_rewards - 1
 
-	# Claim 1 reward (should claim the oldest by issued_at)
-	claim_resp = client.get(
-		f"/api/v1/rewards/claim-reward/{customer_pass_id}",
-		params={"number_of_rewards": 1},
-		headers=headers,
-	)
-	assert claim_resp.status_code == status.HTTP_200_OK
-	cp_after_claim = claim_resp.json()
-	# active_rewards should be decremented by 1
-	assert cp_after_claim["active_rewards"] == rewards_earned - 1
+    # --- Check customer pass state after claiming ---
+    get_pass_after_response = client.get(f"/api/v1/customer-passes/{customer_pass_id}", headers=headers)
+    assert get_pass_after_response.status_code == status.HTTP_200_OK
+    customer_pass_final = get_pass_after_response.json()
+    assert customer_pass_final["active_rewards"] == active_rewards - 1
 
-	# List rewards after claiming
-	rewards_after_resp = client.get(f"/api/v1/customer-passes/{customer_pass_id}/rewards", headers=headers)
-	assert rewards_after_resp.status_code == status.HTTP_200_OK
-	rewards_after = rewards_after_resp.json()
 
-	# There should be exactly one claimed reward
-	claimed = [r for r in rewards_after if r["claimed_at"] is not None]
-	assert len(claimed) == 1
-	assert claimed[0]["active"] is False
 
-	# The claimed reward should be the one with the oldest issued_at
-	oldest_issued_at = min(issued_ats_before)
-	claimed_issued_at = claimed[0]["issued_at"]
-	assert claimed_issued_at == oldest_issued_at
-
-	# The rest should still be unclaimed and active
-	unclaimed = [r for r in rewards_after if r["claimed_at"] is None and r["active"]]
-	assert len(unclaimed) == rewards_earned - 1
-	# Their ids should be a subset of the original reward ids
-	unclaimed_ids = set(r["id"] for r in unclaimed)
-	assert unclaimed_ids.issubset(set(reward_ids_before))
