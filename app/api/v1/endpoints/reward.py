@@ -56,3 +56,24 @@ async def claim_rewards_endpoint(
         session=session,
         owner_id=current_owner.id
     )
+
+@router.get(
+    "/rewards/by-customer-pass/{customer_pass_id}",
+    response_model=list[RewardResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def read_rewards_by_customer_pass_endpoint(
+    customer_pass_id: uuid.UUID,
+    session: SessionDep,
+    current_owner: Owner = Depends(get_current_user),
+):
+    if current_owner.id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Owner ID is missing or unauthorized.",
+        )
+    return read_rewards_by_customer_pass_service(
+        customer_pass_id=customer_pass_id,
+        session=session,
+        owner_id=current_owner.id
+    )

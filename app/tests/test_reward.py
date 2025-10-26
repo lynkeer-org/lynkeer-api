@@ -159,6 +159,38 @@ def test_claim_rewards(client):
     assert get_pass_after_response.status_code == status.HTTP_200_OK
     customer_pass_final = get_pass_after_response.json()
     assert customer_pass_final["active_rewards"] == active_rewards - number_of_rewards_to_claim
+    
+    # --- List all rewards before claiming ---
+    rewards_before_response = client.get(
+        f"/api/v1/rewards/by-customer-pass/{customer_pass_id}", headers=headers
+    )
+    assert rewards_before_response.status_code == status.HTTP_200_OK
+    rewards_before = rewards_before_response.json()
+    # Sort by issued_at ascending (oldest first)
+    rewards_before_sorted = sorted(rewards_before, key=lambda r: r["issued_at"])
+    oldest_reward_ids = [r["id"] for r in rewards_before_sorted[:1]]  # Claiming 1 reward
+
+    # --- Claim 1 reward ---
+    claim_response = client.get(
+        f"/api/v1/rewards/claim-reward/{customer_pass_id}",
+        params={"number_of_rewards": 1},
+        headers=headers,
+    )
+    assert claim_response.status_code == status.HTTP_200_OK
+    customer_pass_after = claim_response.json()
+    assert customer_pass_after["active_rewards"] == active_rewards - 1
+
+    # --- List all rewards after claiming ---
+    rewards_after_response = client.get(
+        f"/api/v1/rewards/by-customer-pass/{customer_pass_id}", headers=headers
+    )
+    assert rewards_after_response.status_code == status.HTTP_200_OK
+    rewards_after = rewards_after_response.json()
+    # Find claimed rewards (active == False and claimed_at is not None)
+    claimed_rewards = [r for r in rewards_after if not r["active"] and r["claimed_at"] is not None]
+    claimed_ids = [r["id"] for r in claimed_rewards]
+    # Assert the claimed reward is the oldest
+    assert set(claimed_ids) == set(oldest_reward_ids)
 
 
 
