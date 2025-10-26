@@ -141,21 +141,24 @@ def test_claim_rewards(client):
     customer_pass_before = get_pass_response.json()
     active_rewards = customer_pass_before["active_rewards"]
 
-    # --- Claim 1 reward ---
+    # --- Claim reward ---
+    number_of_rewards_to_claim = 2
     claim_response = client.get(
         f"/api/v1/rewards/claim-reward/{customer_pass_id}",
-        params={"number_of_rewards": 1},
+        params={"number_of_rewards": number_of_rewards_to_claim},
         headers=headers,
     )
     assert claim_response.status_code == status.HTTP_200_OK
     customer_pass_after = claim_response.json()
-    assert customer_pass_after["active_rewards"] == active_rewards - 1
+    assert customer_pass_after["active_rewards"] == active_rewards - number_of_rewards_to_claim
+    
+
 
     # --- Check customer pass state after claiming ---
     get_pass_after_response = client.get(f"/api/v1/customer-passes/{customer_pass_id}", headers=headers)
     assert get_pass_after_response.status_code == status.HTTP_200_OK
     customer_pass_final = get_pass_after_response.json()
-    assert customer_pass_final["active_rewards"] == active_rewards - 1
+    assert customer_pass_final["active_rewards"] == active_rewards - number_of_rewards_to_claim
 
 
 
