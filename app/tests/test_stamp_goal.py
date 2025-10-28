@@ -1,12 +1,13 @@
 import pytest
 from fastapi import status
+from app.tests.test_customer_pass import get_auth_headers, create_pass_template
 
 
 def test_stamp_goal_completion(client):
     """Test that when stamp goal is reached, stamps are deactivated and reward is created"""
     
     # Setup: Create owner, customer, pass template
-    from app.tests.test_customer_pass import get_auth_headers, create_pass_template
+    
     
     headers = get_auth_headers(client)
     

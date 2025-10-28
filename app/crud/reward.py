@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 from sqlmodel import func, select
 from app.core.db import SessionDep
 from app.models.reward import Reward
+from datetime import datetime, timezone
 import uuid
 
 
@@ -10,6 +11,31 @@ def create_reward(reward_db: Reward, session: SessionDep):
     session.flush()
     return reward_db
 
+def claim_rewards(customer_pass_id: uuid.UUID, number_of_rewards: int, session: SessionDep):
+    
+    # Query for the oldest active rewards for this customer_pass_id
+    query = (
+        select(Reward)
+        .where(
+            Reward.customer_pass_id == customer_pass_id,
+            Reward.active == True
+        )
+        .order_by(Reward.issued_at.asc())
+        .limit(number_of_rewards)
+    )
+    rewards_to_claim = session.exec(query).all()
+    if len(rewards_to_claim) < number_of_rewards:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Not enough rewards available to claim"
+        )
+    now = datetime.now(timezone.utc)
+    for reward in rewards_to_claim:
+        reward.active = False
+        reward.claimed_at = now
+        session.add(reward)
+    session.flush()
+    return rewards_to_claim
 
 def list_rewards(session: SessionDep):
     query = select(Reward).where(Reward.active == True)
